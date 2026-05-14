@@ -12,14 +12,15 @@ function showModule(modId) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
     document.getElementById(modId).classList.add('active');
-    event.currentTarget.classList.add('active');
+    // Added a check to make sure the event exists before calling it
+    if(event) event.currentTarget.classList.add('active');
 }
 
 // Voice Engine
 function speak(text) {
     const synth = window.speechSynthesis;
     const utter = new SpeechSynthesisUtterance(text);
-    utter.pitch = 0.7; // Deeper "Jarvis" tone
+    utter.pitch = 0.7; 
     utter.rate = 1.1;
     synth.speak(utter);
 }
@@ -42,21 +43,14 @@ function runAI() {
 let map;
 function initMap() {
     if(!map) {
-        // Start map at a "cool" location like London or NYC
         map = L.map('map', {
             zoomControl: true,
-            attributionControl: false // Cleaner "Movie" look
+            attributionControl: false 
         }).setView([51.505, -0.09], 13);
 
-        // Standard Street Layer (The CSS filter above will turn this Neon)
-        const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-        // OPTIONAL: Public Satellite Layer (Doesn't require API key for low-volume)
-        // const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         
         speak("Satellite link established. Decrypting regional coordinates.");
-    }
-}
     }
 }
 
@@ -70,7 +64,7 @@ async function runDefine() {
         const definition = data[0].meanings[0].definitions[0].definition;
         output.innerText = `DEFINITION: ${definition}`;
         speak(definition);
-    } catch {
+    } catch (err) {
         output.innerText = "Error: Term not found in database.";
     }
 }
@@ -85,6 +79,9 @@ async function runWeather() {
         const report = `Surface Temp: ${data.current_weather.temperature}°C. Wind: ${data.current_weather.windspeed} km/h.`;
         output.innerText = report;
         speak(report);
+    }, () => {
+        output.innerText = "Error: Location access denied.";
+        speak("Location access denied.");
     });
 }
 
@@ -105,7 +102,7 @@ function calculate() {
     try {
         const res = eval(document.getElementById('calcInput').value);
         document.getElementById('calcResult').innerText = `RESULT: ${res}`;
-    } catch {
+    } catch (e) {
         document.getElementById('calcResult').innerText = "CALCULATION_ERROR";
     }
 }
@@ -117,10 +114,10 @@ async function searchMap() {
         const data = await res.json();
         if(data.length > 0) {
             const { lat, lon } = data[0];
-            map.flyTo([lat, lon], 14, { duration: 2 }); // Smooth "movie" zoom effect
+            map.flyTo([lat, lon], 14, { duration: 2 });
             speak(`Relocating to ${query}. Connection stable.`);
         }
-    } catch {
+    } catch (err) {
         speak("Coordinate jump failed. Signal lost.");
     }
 }
