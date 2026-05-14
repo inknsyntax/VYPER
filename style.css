@@ -121,7 +121,33 @@ input, select {
     min-height: 100px;
 }
 
-#map { height: 350px; border: 1px solid var(--green); }
+/* Hacker-style Map Container */
+#map { 
+    height: 450px; 
+    border: 2px solid var(--green); 
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+    background: #000; /* Dark background during tile load */
+}
 
+/* THE MAGIC: CSS Filter for Neon/Movie look */
+.leaflet-tile-pane {
+    filter: invert(100%) hue-rotate(170deg) brightness(1.2) contrast(1.1);
+}
+
+/* Re-invert markers so they don't look weird */
+.leaflet-marker-icon, .leaflet-marker-shadow {
+    filter: invert(100%) hue-rotate(-170deg);
+}
+
+/* Customizing the zoom controls to match */
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+    background: black !important;
+    color: var(--green) !important;
+    border: 1px solid var(--green) !important;
+}
+
+.leaflet-container {
+    background: #000 !important;
+}
 .util-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .util-card { border: 1px solid var(--dark-green); padding: 15px; }
