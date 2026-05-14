@@ -12,7 +12,14 @@ function showModule(modId) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
     document.getElementById(modId).classList.add('active');
-    // Added a check to make sure the event exists before calling it
+    
+    // Add this part to fix the map "corner" bug
+    if (modId === 'maps' && map) {
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 200); // Gives the CSS a split second to render the box first
+    }
+
     if(event) event.currentTarget.classList.add('active');
 }
 
