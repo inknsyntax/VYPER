@@ -42,8 +42,21 @@ function runAI() {
 let map;
 function initMap() {
     if(!map) {
-        map = L.map('map').setView([0, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // Start map at a "cool" location like London or NYC
+        map = L.map('map', {
+            zoomControl: true,
+            attributionControl: false // Cleaner "Movie" look
+        }).setView([51.505, -0.09], 13);
+
+        // Standard Street Layer (The CSS filter above will turn this Neon)
+        const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        // OPTIONAL: Public Satellite Layer (Doesn't require API key for low-volume)
+        // const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+        
+        speak("Satellite link established. Decrypting regional coordinates.");
+    }
+}
     }
 }
 
