@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VYPER | OS</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+    <div id="splash">
+        <div class="neon-ring" onclick="launchSystem()">
+            <h1>VYPER</h1>
+        </div>
+        <p class="blink">INITIALIZE_SEQUENCE</p>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <header>
+            <div class="sys-info">ID: USER_ALPHA | STATUS: <span id="status">ONLINE</span></div>
+            <div id="clock">00:00:00</div>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" onclick="showModule('ai')">CORE_INTEL</button>
+            <button class="nav-btn" onclick="showModule('maps')">GEO_SCAN</button>
+            <button class="nav-btn" onclick="showModule('define')">LEXICON</button>
+            <button class="nav-btn" onclick="showModule('weather')">ATMOSPHERE</button>
+            <button class="nav-btn" onclick="showModule('utility')">TOOLS</button>
+        </nav>
+
+        <main>
+            <section id="ai" class="module active">
+                <h2>VYPER_LOGIC_ENGINE</h2>
+                <div class="input-group">
+                    <input type="text" id="aiInput" placeholder="Command...">
+                    <button class="exe-btn" onclick="runAI()">EXECUTE</button>
+                </div>
+                <div class="output-box" id="aiOutput">Awaiting user input...</div>
+            </section>
+
+            <section id="maps" class="module">
+                <h2>SAT_LINK_MAPPING</h2>
+                <div id="map"></div>
+            </section>
+
+            <section id="define" class="module">
+                <h2>TERM_EXTRACTION</h2>
+                <div class="input-group">
+                    <input type="text" id="defInput" placeholder="Enter Term...">
+                    <button class="exe-btn" onclick="runDefine()">QUERY</button>
+                </div>
+                <div class="output-box" id="defOutput">...</div>
+            </section>
+
+            <section id="weather" class="module">
+                <h2>ENVIRONMENTAL_SYNC</h2>
+                <button class="exe-btn" onclick="runWeather()">SCAN_LOC</button>
+                <div class="output-box" id="weatherOutput">Awaiting scan...</div>
+            </section>
+
+            <section id="utility" class="module">
+                <h2>UTILITY_STACK</h2>
+                <div class="util-grid">
+                    <div class="util-card">
+                        <h3>CONVERTER</h3>
+                        <input type="number" id="unitVal" placeholder="Value">
+                        <select id="unitType">
+                            <option value="ktom">KM -> MI</option>
+                            <option value="mtok">MI -> KM</option>
+                        </select>
+                        <button class="exe-btn" onclick="convert()">GO</button>
+                        <p id="unitResult"></p>
+                    </div>
+                    <div class="util-card">
+                        <h3>CALC</h3>
+                        <input type="text" id="calcInput" placeholder="Math Exp">
+                        <button class="exe-btn" onclick="calculate()">SOLVE</button>
+                        <p id="calcResult"></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
