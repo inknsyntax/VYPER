@@ -123,11 +123,13 @@ input, select {
 
 /* Hacker-style Map Container */
 #map { 
-    height: 450px; 
+    height: 500px; 
+    width: 100%; /* Ensure it's set to 100% */
     border: 2px solid var(--green); 
     box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
-    background: #000; /* Dark background during tile load */
-}
+    background: #000;
+} /* Dark background during tile load */
+
 
 /* THE MAGIC: CSS Filter for Neon/Movie look */
 .leaflet-tile-pane {
