@@ -109,3 +109,18 @@ function calculate() {
         document.getElementById('calcResult').innerText = "CALCULATION_ERROR";
     }
 }
+
+async function searchMap() {
+    const query = document.getElementById('mapSearch').value;
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+        const data = await res.json();
+        if(data.length > 0) {
+            const { lat, lon } = data[0];
+            map.flyTo([lat, lon], 14, { duration: 2 }); // Smooth "movie" zoom effect
+            speak(`Relocating to ${query}. Connection stable.`);
+        }
+    } catch {
+        speak("Coordinate jump failed. Signal lost.");
+    }
+}
