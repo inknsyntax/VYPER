@@ -1,94 +1,1380 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VYPER | OS</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VYPER — Image Inspector</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root{
+    --bg:#0a0b0e;
+    --panel:#13151b;
+    --panel-2:#0f1116;
+    --line:#262a33;
+    --ice:#e8ecf2;
+    --muted:#7b8494;
+    --muted-2:#565d6b;
+    --amber:#ffb627;
+    --amber-dim:rgba(255,182,39,.14);
+    --red:#ff5470;
+    --mono:'SFMono-Regular',ui-monospace,'Menlo','Consolas',monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--ice);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.6;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    height:52px;display:flex;align-items:center;gap:18px;
+    padding:0 20px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#101218,#0c0e13);
+  }
+  .brand{display:flex;align-items:baseline;gap:10px}
+  .brand .mark{
+    font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:.34em;
+    color:var(--ice);
+  }
+  .brand .mark b{color:var(--amber)}
+  .brand .sub{font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:var(--muted-2);text-transform:uppercase}
+  .status{margin-left:auto;display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber);display:inline-block;margin-right:7px;vertical-align:middle;animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  #clock{color:var(--ice)}
+
+  /* ---------- Layout ---------- */
+  .stage{display:grid;grid-template-columns:1fr 360px;height:calc(100vh - 82px)}
+  .canvas-wrap{position:relative;overflow:hidden;background:
+    radial-gradient(120% 120% at 50% 0%,#101319,#08090c);
+    display:flex;align-items:center;justify-content:center}
+
+  /* grid backdrop */
+  .canvas-wrap::before{
+    content:"";position:absolute;inset:0;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px;opacity:.13;pointer-events:none;
+  }
+
+  /* dropzone / empty state */
+  .empty{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:22px;text-align:center;padding:40px;transition:opacity .3s,border-color .2s;z-index:5;
+  }
+  .empty.hide{opacity:0;pointer-events:none}
+  .empty .ring{
+    width:108px;height:108px;border:1px dashed var(--muted-2);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .empty .ring::after{content:"";position:absolute;inset:14px;border:1px solid var(--line);border-radius:50%}
+  .empty .ring svg{width:34px;height:34px;stroke:var(--amber);fill:none;stroke-width:1.4}
+  .empty h2{font-family:var(--mono);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ice);font-weight:600}
+  .empty p{font-size:13px;color:var(--muted);max-width:340px;line-height:1.6}
+  .empty .keys{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  kbd{font-family:var(--mono);font-size:10.5px;background:var(--panel);border:1px solid var(--line);
+    border-bottom-color:#000;border-radius:5px;padding:4px 8px;color:var(--muted);letter-spacing:.08em}
+  body.dragging .empty{border:1px solid var(--amber);background:var(--amber-dim)}
+  .btn-load{
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    background:var(--amber);color:#1a1303;border:none;padding:11px 22px;border-radius:6px;cursor:pointer;
+    font-weight:700;transition:transform .12s,box-shadow .2s;box-shadow:0 0 0 rgba(255,182,39,0);
+  }
+  .btn-load:hover{transform:translateY(-1px);box-shadow:0 6px 22px rgba(255,182,39,.28)}
+
+  /* image + reticle */
+  #imgWrap{position:relative;max-width:100%;max-height:100%;line-height:0}
+  #img{display:block;max-width:100%;max-height:calc(100vh - 82px - 56px);user-select:none;-webkit-user-drag:none}
+  #imgWrap.loaded{cursor:crosshair}
+  .reticle{
+    position:absolute;width:84px;height:84px;border:1px solid var(--amber);border-radius:4px;
+    transform:translate(-50%,-50%);pointer-events:none;display:none;z-index:6;
+    box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 16px rgba(255,182,39,.25);
+  }
+  .reticle::before,.reticle::after{content:"";position:absolute;background:var(--amber);opacity:.85}
+  .reticle::before{left:50%;top:-9px;bottom:-9px;width:1px;transform:translateX(-.5px)}
+  .reticle::after{top:50%;left:-9px;right:-9px;height:1px;transform:translateY(-.5px)}
+  .reticle .corner{position:absolute;width:9px;height:9px;border:1.5px solid var(--amber)}
+  .reticle .c1{top:-1px;left:-1px;border-right:none;border-bottom:none}
+  .reticle .c2{top:-1px;right:-1px;border-left:none;border-bottom:none}
+  .reticle .c3{bottom:-1px;left:-1px;border-right:none;border-top:none}
+  .reticle .c4{bottom:-1px;right:-1px;border-left:none;border-top:none}
+  #imgWrap.loaded:hover .reticle{display:block}
+
+  /* canvas toolbar */
+  .canvas-bar{
+    position:absolute;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;gap:8px;
+    padding:0 18px;border-top:1px solid var(--line);
+    background:linear-gradient(0deg,#0c0e13,rgba(12,14,19,0));backdrop-filter:blur(2px);z-index:7;
+  }
+  .canvas-bar .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .canvas-bar .meta b{color:var(--amber)}
+  .canvas-bar .spacer{margin-left:auto}
+  .chip{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:8px 13px;border-radius:6px;
+    cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px;
+  }
+  .chip:hover{border-color:var(--amber);color:var(--ice)}
+  .chip svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5}
+  .chip.primary{background:var(--amber);color:#1a1303;border-color:var(--amber);font-weight:700}
+  .chip.primary:hover{filter:brightness(1.08)}
+  .chip:disabled{opacity:.4;cursor:not-allowed}
+
+  /* ---------- Right rail ---------- */
+  .rail{border-left:1px solid var(--line);background:var(--panel-2);overflow-y:auto;display:flex;flex-direction:column}
+  .rail::-webkit-scrollbar{width:8px}
+  .rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  .module{border-bottom:1px solid var(--line);padding:18px 20px}
+  .module h3{
+    font-family:var(--mono);font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;gap:9px;margin-bottom:16px;
+  }
+  .module h3 .idx{color:var(--amber);font-weight:700}
+  .module h3::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  /* magnifier */
+  .mag-frame{
+    position:relative;width:100%;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;overflow:hidden;
+    background:#000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="%230d0f14"/></svg>');
+  }
+  #mag{position:absolute;inset:0;width:100%;height:100%;image-rendering:auto}
+  .mag-cross{position:absolute;inset:0;pointer-events:none}
+  .mag-cross::before,.mag-cross::after{content:"";position:absolute;background:rgba(255,182,39,.55)}
+  .mag-cross::before{left:50%;top:0;bottom:0;width:1px}
+  .mag-cross::after{top:50%;left:0;right:0;height:1px}
+  .mag-cross .box{position:absolute;left:50%;top:50%;width:26px;height:26px;transform:translate(-50%,-50%);border:1px solid var(--amber);opacity:.7}
+  .mag-idle{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;text-align:center;padding:20px}
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:14px;background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .readout div{background:var(--panel-2);padding:9px 11px}
+  .readout span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;margin-bottom:3px}
+  .readout b{font-family:var(--mono);font-size:12.5px;color:var(--ice);font-weight:600}
+  .swatch{display:inline-block;width:11px;height:11px;border-radius:2px;border:1px solid var(--line);vertical-align:-1px;margin-right:6px}
+
+  /* controls */
+  .ctrl{margin-bottom:16px}
+  .ctrl:last-child{margin-bottom:0}
+  .ctrl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .ctrl-head label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .ctrl-head .val{font-family:var(--mono);font-size:11px;color:var(--amber)}
+  input[type=range]{-webkit-appearance:none;width:100%;height:2px;background:var(--line);border-radius:2px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--amber);cursor:pointer;box-shadow:0 0 0 3px var(--panel-2),0 0 8px rgba(255,182,39,.4)}
+  input[type=range]::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:50%;background:var(--amber);cursor:pointer;box-shadow:0 0 0 3px var(--panel-2)}
+  .toggles{display:flex;gap:8px;flex-wrap:wrap}
+  .toggle{flex:1;min-width:0;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:9px 6px;border-radius:6px;cursor:pointer;transition:.15s;text-align:center}
+  .toggle.on{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+  .reset{width:100%;margin-top:14px;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    background:transparent;border:1px solid var(--line);color:var(--muted);padding:9px;border-radius:6px;cursor:pointer;transition:.15s}
+  .reset:hover{border-color:var(--red);color:var(--red)}
+
+  /* OCR */
+  .ocr-out{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px;
+    min-height:84px;font-size:12.5px;line-height:1.6;color:var(--ice);max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  .ocr-out.placeholder{color:var(--muted-2);font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+  .ocr-bar{height:2px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:10px;display:none}
+  .ocr-bar.show{display:block}
+  .ocr-bar i{display:block;height:100%;width:0;background:var(--amber);transition:width .2s}
+
+  .hint{font-size:11px;color:var(--muted-2);line-height:1.6;margin-top:12px;font-family:var(--mono);letter-spacing:.04em}
+
+  .toast{position:fixed;bottom:74px;left:50%;transform:translate(-50%,20px);background:var(--panel);border:1px solid var(--amber);
+    color:var(--ice);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:11px 18px;border-radius:7px;
+    opacity:0;pointer-events:none;transition:.25s;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media(max-width:860px){
+    .stage{grid-template-columns:1fr;grid-template-rows:1fr auto;height:calc(100vh - 82px)}
+    .rail{border-left:none;border-top:1px solid var(--line);max-height:46vh}
+    #img{max-height:calc(50vh - 56px)}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* ---------- BOOT SEQUENCE ---------- */
+  #boot{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:30px;transition:opacity .6s}
+  #boot.done{opacity:0;pointer-events:none}
+  #boot .aperture{width:120px;height:120px}
+  #boot .blines{font-family:var(--mono);font-size:12px;letter-spacing:.1em;line-height:2;color:var(--muted);
+    width:min(420px,82vw);min-height:230px}
+  #boot .blines .ln{opacity:0;display:flex;justify-content:space-between;gap:20px}
+  #boot .blines .ln.in{opacity:1}
+  #boot .blines .ln .ok{color:var(--amber)}
+  #boot .blines .ln .ok.warn{color:var(--muted-2)}
+  #boot .brandboot{font-family:var(--mono);font-weight:700;font-size:26px;letter-spacing:.4em;color:var(--ice)}
+  #boot .brandboot b{color:var(--amber)}
+  #boot .skip{position:fixed;bottom:30px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--muted-2);cursor:pointer}
+  #boot .skip:hover{color:var(--amber)}
+  .caret{display:inline-block;width:7px;height:13px;background:var(--amber);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* core aperture glyph in topbar */
+  .core{width:26px;height:26px;flex:0 0 auto}
+  .core .ring-r{transform-origin:center;animation:spin 14s linear infinite}
+  .core .ring-r.fast{animation-duration:2.4s}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* telemetry strip */
+  .telemetry{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--panel-2);
+    font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;height:30px;align-items:stretch}
+  .telemetry .t{display:flex;align-items:center;gap:7px;padding:0 16px;border-right:1px solid var(--line);color:var(--muted-2)}
+  .telemetry .t b{color:var(--amber);font-weight:600}
+  .telemetry .t.flex{flex:1;justify-content:flex-end;border-right:none;color:var(--muted)}
+  .telemetry .t .ico{width:6px;height:6px;border-radius:50%;background:var(--amber);box-shadow:0 0 6px var(--amber)}
+
+  /* corner HUD brackets on canvas */
+  .hud-corner{position:absolute;width:22px;height:22px;border:1.5px solid var(--amber);opacity:.5;z-index:6;pointer-events:none}
+  .hud-corner.tl{top:14px;left:14px;border-right:none;border-bottom:none}
+  .hud-corner.tr{top:14px;right:14px;border-left:none;border-bottom:none}
+  .hud-corner.bl{bottom:70px;left:14px;border-right:none;border-top:none}
+  .hud-corner.br{bottom:70px;right:14px;border-left:none;border-top:none}
+
+  /* radar sweep behind empty state */
+  .sweep{position:absolute;width:520px;height:520px;left:50%;top:50%;transform:translate(-50%,-50%);
+    border-radius:50%;pointer-events:none;z-index:1;opacity:.5;
+    background:conic-gradient(from 0deg,transparent 0deg,rgba(255,182,39,.12) 18deg,transparent 36deg);
+    animation:spin 6s linear infinite}
+  .empty.hide ~ .sweep{display:none}
+
+  /* sound toggle in topbar */
+  .sndtog{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    background:transparent;border:1px solid var(--line);color:var(--muted);padding:6px 11px;border-radius:6px;cursor:pointer;transition:.15s}
+  .sndtog:hover{border-color:var(--amber);color:var(--ice)}
+  .sndtog.on{border-color:var(--amber);color:var(--amber)}
+
+  /* session log */
+  .log{font-family:var(--mono);font-size:10.5px;line-height:1.7;color:var(--muted);max-height:150px;overflow-y:auto;
+    background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:11px 13px}
+  .log .e{display:flex;gap:9px;animation:logIn .3s ease}
+  .log .e time{color:var(--muted-2);flex:0 0 auto}
+  .log .e span{color:var(--ice);word-break:break-word}
+  .log .e span.amb{color:var(--amber)}
+  @keyframes logIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1}}
+  .log::-webkit-scrollbar{width:6px}.log::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* ---------- TIER 3: ENHANCE SET PIECE ---------- */
+
+  /* Scan line that sweeps the image */
+  #scanLine{
+    position:absolute;left:0;right:0;height:2px;z-index:8;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,182,39,.9),transparent);
+    box-shadow:0 0 18px 4px rgba(255,182,39,.5);
+    display:none;top:0;
+  }
+  #scanLine.running{display:block;animation:scanSweep var(--sweep-dur,1.4s) linear forwards}
+  @keyframes scanSweep{from{top:0}to{top:100%}}
+
+  /* Edge overlay canvas */
+  #edgeCanvas{
+    position:absolute;inset:0;width:100%;height:100%;
+    pointer-events:none;z-index:5;display:none;mix-blend-mode:screen;
+  }
+  #edgeCanvas.on{display:block}
+
+  /* ENHANCE modal overlay */
+  #enhanceModal{
+    position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;
+    background:rgba(10,11,14,.6);backdrop-filter:blur(1px);
+  }
+  #enhanceModal.open{display:flex}
+  .enhance-hud{
+    width:min(460px,88vw);border:1px solid var(--amber);border-radius:10px;
+    background:rgba(10,11,14,.92);padding:28px 28px 24px;position:relative;overflow:hidden;
+  }
+  .enhance-hud::before{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(0deg,rgba(255,182,39,.04) 0 1px,transparent 1px 3px);
+    pointer-events:none;
+  }
+  .enhance-title{font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:22px}
+  .enhance-view{
+    width:100%;aspect-ratio:2/1;background:#000;border:1px solid var(--line);border-radius:6px;
+    overflow:hidden;position:relative;margin-bottom:18px;
+  }
+  #enhancePreview{width:100%;height:100%;image-rendering:pixelated}
+  .enhance-scan{position:absolute;left:0;right:0;height:2px;top:0;
+    background:linear-gradient(90deg,transparent,rgba(255,182,39,.95),transparent);
+    box-shadow:0 0 14px 3px rgba(255,182,39,.55);
+    animation:scanSweep 1s linear infinite;display:none}
+  .enhance-scan.on{display:block}
+  .enhance-status{font-family:var(--mono);font-size:13px;letter-spacing:.16em;color:var(--amber);margin-bottom:10px}
+  .enhance-bar-wrap{height:3px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:14px}
+  .enhance-bar-fill{height:100%;width:0;background:var(--amber);border-radius:3px;transition:width .15s linear;box-shadow:0 0 8px var(--amber)}
+  .enhance-coords{display:flex;gap:14px;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--muted-2)}
+  .enhance-coords b{color:var(--ice)}
+  .enhance-locked{
+    position:absolute;top:8px;right:8px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+    background:var(--amber);color:#1a1303;padding:3px 8px;border-radius:4px;font-weight:700;
+    display:none;
+  }
+  .enhance-locked.show{display:block}
+
+  /* reticle locked state */
+  .reticle.locked{
+    border-color:var(--amber);box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 28px rgba(255,182,39,.7);
+    animation:reticlePulse .6s ease-in-out infinite alternate;
+  }
+  @keyframes reticlePulse{from{box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 18px rgba(255,182,39,.4)}to{box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 36px rgba(255,182,39,.85)}}
+
+  /* enhance chip active state */
+  .chip.enhance-active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
+
+  /* ===== GEO SCAN ===== */
+  #geoMap{width:100%;height:220px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d0f14}
+  .geo-bar{display:flex;gap:7px;margin-top:11px}
+  .geo-bar input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    color:var(--ice);font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:9px 12px;outline:none}
+  .geo-bar input:focus{border-color:var(--amber)}
+  .geo-bar input::placeholder{color:var(--muted-2)}
+  .geo-readout{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:10px;
+    background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .geo-readout div{background:var(--panel-2);padding:8px 10px}
+  .geo-readout span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;margin-bottom:3px}
+  .geo-readout b{font-family:var(--mono);font-size:11px;color:var(--ice);word-break:break-word}
+
+  /* Leaflet dark override */
+  .leaflet-tile{filter:invert(1) hue-rotate(180deg) brightness(.75) saturate(.8) contrast(1.1)}
+  .leaflet-container{background:#0a0b0e}
+  .leaflet-control-attribution{display:none}
+  .leaflet-control-zoom a{background:var(--panel)!important;color:var(--amber)!important;border-color:var(--line)!important}
+
+  /* ===== LEXICON ===== */
+  .lex-bar{display:flex;gap:7px;margin-bottom:12px}
+  .lex-bar input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    color:var(--ice);font-family:var(--mono);font-size:11px;padding:9px 12px;outline:none;letter-spacing:.08em}
+  .lex-bar input:focus{border-color:var(--amber)}
+  .lex-bar input::placeholder{color:var(--muted-2)}
+  .lex-result{font-size:12.5px;line-height:1.65;color:var(--ice)}
+  .lex-word{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--amber);letter-spacing:.06em;margin-bottom:2px}
+  .lex-phonetic{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px}
+  .lex-pos{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted-2);
+    background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:3px 8px;display:inline-block;margin:8px 0 6px}
+  .lex-def{color:var(--ice);font-size:12.5px;margin-bottom:5px;padding-left:10px;border-left:2px solid var(--line)}
+  .lex-example{color:var(--muted);font-size:11.5px;font-style:italic;padding-left:10px;margin-bottom:8px}
+  .lex-empty{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
+  .lex-scroll{max-height:260px;overflow-y:auto}
+  .lex-scroll::-webkit-scrollbar{width:5px}.lex-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+  /* ===== VOICE / JARVIS ===== */
+  .voice-orb-wrap{display:flex;justify-content:center;margin-bottom:16px}
+  .voice-orb{
+    width:72px;height:72px;border-radius:50%;border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;
+    background:var(--panel);transition:.2s;
+  }
+  .voice-orb:hover{border-color:var(--amber)}
+  .voice-orb.listening{border-color:var(--amber);box-shadow:0 0 0 0 rgba(255,182,39,.6);animation:orbPulse 1.2s ease-out infinite}
+  .voice-orb.speaking{border-color:#56cfff;box-shadow:0 0 20px rgba(86,207,255,.3)}
+  @keyframes orbPulse{to{box-shadow:0 0 0 22px rgba(255,182,39,0)}}
+  .voice-orb svg{width:28px;height:28px;stroke:var(--muted);fill:none;stroke-width:1.5;transition:.2s}
+  .voice-orb.listening svg,.voice-orb:hover svg{stroke:var(--amber)}
+  .voice-orb.speaking svg{stroke:#56cfff}
+  .voice-status{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--muted-2);text-align:center;margin-bottom:12px;min-height:16px}
+  .voice-status.active{color:var(--amber)}
+  .voice-status.speaking{color:#56cfff}
+  .voice-transcript{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:11px 13px;
+    min-height:52px;font-size:12.5px;line-height:1.6;color:var(--muted);font-style:italic;margin-bottom:10px}
+  .voice-response{background:var(--panel-2);border:1px solid var(--amber);border-radius:7px;padding:11px 13px;
+    font-family:var(--mono);font-size:11.5px;line-height:1.65;color:var(--ice);display:none;letter-spacing:.03em}
+  .voice-response.show{display:block}
+  .voice-keywords{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+  .kw{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+    background:var(--amber-dim);border:1px solid rgba(255,182,39,.3);color:var(--amber);
+    padding:3px 8px;border-radius:4px}
+  .voice-hint{font-size:11px;color:var(--muted-2);line-height:1.6;margin-top:10px;font-family:var(--mono);letter-spacing:.04em}
+  .no-speech{font-family:var(--mono);font-size:10.5px;color:var(--muted-2);letter-spacing:.1em;text-align:center;padding:8px}
+</style>
 </head>
 <body>
+  <!-- BOOT SEQUENCE -->
+  <div id="boot">
+    <svg class="aperture" id="bootAperture" viewBox="0 0 100 100">
+      <g class="ring-r" id="bootRing">
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#262a33" stroke-width="1"/>
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#ffb627" stroke-width="1.5"
+          stroke-dasharray="40 240" stroke-linecap="round"/>
+      </g>
+      <g id="bootBlades"></g>
+      <circle cx="50" cy="50" r="6" fill="#ffb627" id="bootPupil"/>
+    </svg>
+    <div class="brandboot">VY<b>P</b>ER</div>
+    <div class="blines" id="bootLines"></div>
+    <div class="skip" id="bootSkip">Click to skip</div>
+  </div>
 
-    <div id="splash">
-        <div class="neon-ring" onclick="launchSystem()">
-            <h1>VYPER</h1>
+  <div class="topbar">
+    <div class="brand">
+      <svg class="core" id="coreGlyph" viewBox="0 0 100 100">
+        <g class="ring-r" id="coreRing">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="#ffb627" stroke-width="3"
+            stroke-dasharray="34 210" stroke-linecap="round"/>
+        </g>
+        <circle cx="50" cy="50" r="30" fill="none" stroke="#262a33" stroke-width="2"/>
+        <circle cx="50" cy="50" r="8" fill="#ffb627"/>
+      </svg>
+      <span class="mark">VY<b>P</b>ER</span>
+      <span class="sub">Optical Core</span>
+    </div>
+    <div class="status">
+      <button class="sndtog" id="sndTog">♪ Sound off</button>
+      <span><span class="dot"></span>Local session</span>
+      <span id="clock">00:00:00</span>
+    </div>
+  </div>
+
+  <!-- TELEMETRY -->
+  <div class="telemetry" id="telemetry">
+    <div class="t"><span class="ico"></span>VYPER OPTICAL CORE</div>
+    <div class="t">RES <b id="telRes">—</b></div>
+    <div class="t">MPX <b id="telMpx">—</b></div>
+    <div class="t">ZOOM <b id="telZoom">8×</b></div>
+    <div class="t">PX <b id="telPx">0,0</b></div>
+    <div class="t flex">RENDER <b id="telFps">—</b> FPS</div>
+  </div>
+
+  <div class="stage">
+    <!-- LEFT: canvas -->
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
+      <div class="hud-corner bl"></div><div class="hud-corner br"></div>
+      <div class="sweep" id="sweep"></div>
+
+      <!-- TIER 3 elements -->
+      <div id="scanLine"></div>
+      <canvas id="edgeCanvas"></canvas>
+      <div id="enhanceModal">
+        <div class="enhance-hud">
+          <div class="enhance-title">⬡ VYPER ENHANCE SEQUENCE</div>
+          <div class="enhance-view">
+            <canvas id="enhancePreview"></canvas>
+            <div class="enhance-scan" id="enhanceScan"></div>
+            <div class="enhance-locked" id="enhanceLocked">LOCKED</div>
+          </div>
+          <div class="enhance-status" id="enhanceStatus">INITIALIZING…</div>
+          <div class="enhance-bar-wrap"><div class="enhance-bar-fill" id="enhanceFill"></div></div>
+          <div class="enhance-coords" id="enhanceCoords"></div>
         </div>
-        <p class="blink">INITIALIZE_SEQUENCE</p>
+      </div>
+      <div class="empty" id="empty">
+        <div class="ring">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg>
+        </div>
+        <div>
+          <h2>Load an image to inspect</h2>
+          <p>Drop a file here, paste from clipboard, or browse. The reticle reveals fine detail; export the crop you need.</p>
+        </div>
+        <button class="btn-load" id="browseBtn">Browse files</button>
+        <div class="keys">
+          <kbd>Drag &amp; drop</kbd><kbd>⌘ / Ctrl + V paste</kbd><kbd>Crosshair to zoom</kbd>
+        </div>
+      </div>
+
+      <div id="imgWrap">
+        <img id="img" alt="">
+        <div class="reticle" id="reticle">
+          <span class="corner c1"></span><span class="corner c2"></span>
+          <span class="corner c3"></span><span class="corner c4"></span>
+        </div>
+      </div>
+
+      <div class="canvas-bar" id="canvasBar" style="display:none">
+        <div class="meta" id="dims">— × —</div>
+        <div class="spacer"></div>
+        <button class="chip" id="replaceBtn">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2"/></svg>Replace
+        </button>
+        <button class="chip" id="edgeBtn" disabled>
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M3 12h2M19 12h2M12 3v2M12 19v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4"/></svg>Edge trace
+        </button>
+        <button class="chip" id="enhanceBtn" disabled>
+          <svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>Enhance
+        </button>
+        <button class="chip primary" id="exportBtn" disabled>
+          <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Export crop
+        </button>
+      </div>
     </div>
 
-    <div id="dashboard" class="hidden">
-        <header>
-            <div class="sys-info">ID: USER_ALPHA | STATUS: <span id="status">ONLINE</span></div>
-            <div id="clock">00:00:00</div>
-        </header>
-
-        <nav>
-            <button class="nav-btn active" onclick="showModule('ai')">CORE_INTEL</button>
-            <button class="nav-btn" onclick="showModule('maps')">GEO_SCAN</button>
-            <button class="nav-btn" onclick="showModule('define')">LEXICON</button>
-            <button class="nav-btn" onclick="showModule('weather')">ATMOSPHERE</button>
-            <button class="nav-btn" onclick="showModule('utility')">TOOLS</button>
-        </nav>
-
-        <main>
-            <section id="ai" class="module active">
-                <h2>VYPER_LOGIC_ENGINE</h2>
-                <div class="input-group">
-                    <input type="text" id="aiInput" placeholder="Command...">
-                    <button class="exe-btn" onclick="runAI()">EXECUTE</button>
-                </div>
-                <div class="output-box" id="aiOutput">Awaiting user input...</div>
-            </section>
-
-            <section id="maps" class="module">
-        <h2>SAT_LINK_MAPPING</h2>
-        <div class="input-group">
-            <input type="text" id="mapSearch" placeholder="Enter Coordinates or City...">
-            <button class="exe-btn" onclick="searchMap()">JUMP_TO</button>
+    <!-- RIGHT: modules -->
+    <aside class="rail">
+      <section class="module">
+        <h3><span class="idx">01</span> Magnifier</h3>
+        <div class="mag-frame">
+          <canvas id="mag" width="320" height="320"></canvas>
+          <div class="mag-cross" id="magCross" style="display:none"><span class="box"></span></div>
+          <div class="mag-idle" id="magIdle">Hover the image</div>
         </div>
-        <div id="map"></div>
-    </section>
+        <div class="readout">
+          <div><span>Coordinate</span><b id="rCoord">—</b></div>
+          <div><span>Zoom</span><b id="rZoom">8×</b></div>
+          <div><span>Pixel</span><b id="rHex"><i class="swatch" id="rSwatch"></i>—</b></div>
+          <div><span>RGB</span><b id="rRGB">—</b></div>
+        </div>
+        <div class="ctrl" style="margin-top:16px;margin-bottom:0">
+          <div class="ctrl-head"><label>Magnification</label><span class="val" id="zoomVal">8×</span></div>
+          <input type="range" id="zoom" min="2" max="20" step="1" value="8">
+        </div>
+      </section>
 
-            <section id="define" class="module">
-                <h2>TERM_EXTRACTION</h2>
-                <div class="input-group">
-                    <input type="text" id="defInput" placeholder="Enter Term...">
-                    <button class="exe-btn" onclick="runDefine()">QUERY</button>
-                </div>
-                <div class="output-box" id="defOutput">...</div>
-            </section>
+      <section class="module">
+        <h3><span class="idx">02</span> Enhance</h3>
+        <div class="ctrl">
+          <div class="ctrl-head"><label>Contrast</label><span class="val" id="contrastVal">100%</span></div>
+          <input type="range" id="contrast" min="50" max="200" step="1" value="100">
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label>Brightness</label><span class="val" id="brightVal">100%</span></div>
+          <input type="range" id="bright" min="50" max="180" step="1" value="100">
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label>Sharpen</label><span class="val" id="sharpVal">0%</span></div>
+          <input type="range" id="sharp" min="0" max="100" step="1" value="0">
+        </div>
+        <div class="ctrl">
+          <div class="ctrl-head"><label>Saturation</label><span class="val" id="satVal">100%</span></div>
+          <input type="range" id="sat" min="0" max="200" step="1" value="100">
+        </div>
+        <div class="toggles">
+          <button class="toggle" data-fx="grayscale">Grayscale</button>
+          <button class="toggle" data-fx="invert">Invert</button>
+        </div>
+        <button class="reset" id="resetFx">Reset enhancements</button>
+      </section>
 
-            <section id="weather" class="module">
-                <h2>ENVIRONMENTAL_SYNC</h2>
-                <button class="exe-btn" onclick="runWeather()">SCAN_LOC</button>
-                <div class="output-box" id="weatherOutput">Awaiting scan...</div>
-            </section>
+      <section class="module">
+        <h3><span class="idx">03</span> Text extraction</h3>
+        <button class="chip primary" id="ocrBtn" style="width:100%;justify-content:center" disabled>
+          <svg viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>Read text in image
+        </button>
+        <div class="ocr-bar" id="ocrBar"><i id="ocrFill"></i></div>
+        <div class="ocr-out placeholder" id="ocrOut">No text extracted yet</div>
+        <p class="hint">OCR loads Tesseract.js from a CDN on first run — needs a connection. Everything else runs offline.</p>
+      </section>
 
-            <section id="utility" class="module">
-                <h2>UTILITY_STACK</h2>
-                <div class="util-grid">
-                    <div class="util-card">
-                        <h3>CONVERTER</h3>
-                        <input type="number" id="unitVal" placeholder="Value">
-                        <select id="unitType">
-                            <option value="ktom">KM -> MI</option>
-                            <option value="mtok">MI -> KM</option>
-                        </select>
-                        <button class="exe-btn" onclick="convert()">GO</button>
-                        <p id="unitResult"></p>
-                    </div>
-                    <div class="util-card">
-                        <h3>CALC</h3>
-                        <input type="text" id="calcInput" placeholder="Math Exp">
-                        <button class="exe-btn" onclick="calculate()">SOLVE</button>
-                        <p id="calcResult"></p>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+      <section class="module">
+        <h3><span class="idx">04</span> Session log</h3>
+        <div class="log" id="log"></div>
+      </section>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="script.js"></script>
+      <section class="module">
+        <h3><span class="idx">05</span> Geo scan</h3>
+        <div id="geoMap"></div>
+        <div class="geo-bar">
+          <input id="geoInput" placeholder="Search location…" autocomplete="off">
+          <button class="chip" id="geoSearchBtn">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg>
+          </button>
+          <button class="chip" id="geoLocBtn" title="Detect my location">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
+        </div>
+        <div class="geo-readout">
+          <div><span>Latitude</span><b id="geoLat">—</b></div>
+          <div><span>Longitude</span><b id="geoLng">—</b></div>
+          <div><span>Location</span><b id="geoName">—</b></div>
+          <div><span>Country</span><b id="geoCountry">—</b></div>
+        </div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">06</span> Lexicon</h3>
+        <div class="lex-bar">
+          <input id="lexInput" placeholder="Define a word…" autocomplete="off">
+          <button class="chip" id="lexBtn">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </button>
+        </div>
+        <div class="lex-scroll" id="lexResult"><div class="lex-empty">Awaiting query…</div></div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">07</span> Voice core</h3>
+        <div class="voice-orb-wrap">
+          <div class="voice-orb" id="voiceOrb" title="Click to speak">
+            <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8"/></svg>
+          </div>
+        </div>
+        <div class="voice-status" id="voiceStatus">Click orb to activate</div>
+        <div class="voice-transcript" id="voiceTranscript">Awaiting input…</div>
+        <div class="voice-response" id="voiceResponse"></div>
+        <div class="voice-keywords" id="voiceKeywords"></div>
+        <p class="voice-hint">Try: "enhance the image" · "locate London" · "define serendipity" · "what can you do"</p>
+      </section>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <input type="file" id="fileInput" accept="image/*" hidden>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+
+  /* ===================== SOUND ENGINE ===================== */
+  const Snd=(()=>{
+    let ctx=null, on=false, master=null;
+    function init(){ if(ctx)return; ctx=new (window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain(); master.gain.value=.18; master.connect(ctx.destination); }
+    function tone(freq,dur,type='sine',slideTo=null,vol=1){
+      if(!on||!ctx)return;
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type=type; o.frequency.value=freq;
+      if(slideTo)o.frequency.exponentialRampToValueAtTime(slideTo,ctx.currentTime+dur);
+      g.gain.setValueAtTime(.0001,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(vol,ctx.currentTime+.008);
+      g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+dur);
+      o.connect(g); g.connect(master); o.start(); o.stop(ctx.currentTime+dur+.02);
+    }
+    return {
+      enable(){ init(); on=true; if(ctx&&ctx.state==='suspended')ctx.resume(); },
+      disable(){ on=false; },
+      get on(){ return on; },
+      tick(){ tone(2400,.025,'square',null,.25); },
+      whoosh(){ tone(220,.18,'sawtooth',680,.5); },
+      ok(){ tone(520,.09,'sine',880,.7); setTimeout(()=>tone(880,.12,'sine',1320,.6),70); },
+      thunk(){ tone(140,.16,'sine',70,.9); },
+      buzz(){ tone(120,.22,'sawtooth',90,.7); },
+      boot(){ tone(180,.5,'sine',520,.6); }
+    };
+  })();
+
+  $('sndTog').onclick=()=>{
+    const b=$('sndTog');
+    if(Snd.on){ Snd.disable(); b.classList.remove('on'); b.textContent='♪ Sound off'; }
+    else { Snd.enable(); b.classList.add('on'); b.textContent='♪ Sound on'; Snd.tick(); }
+  };
+
+  /* ===================== SESSION LOG ===================== */
+  function logEvent(msg,amber){
+    const el=$('log'); if(!el)return;
+    const t=new Date().toTimeString().slice(0,8);
+    const e=document.createElement('div'); e.className='e';
+    e.innerHTML=`<time>${t}</time><span class="${amber?'amb':''}">${msg}</span>`;
+    el.appendChild(e); el.scrollTop=el.scrollHeight;
+    while(el.children.length>60)el.removeChild(el.firstChild);
+  }
+
+  /* ===================== BOOT SEQUENCE ===================== */
+  (function boot(){
+    // aperture blades
+    const blades=$('bootBlades');
+    for(let i=0;i<8;i++){
+      const a=(i/8)*Math.PI*2, x=50+Math.cos(a)*22, y=50+Math.sin(a)*22;
+      const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+      l.setAttribute('x1',50);l.setAttribute('y1',50);l.setAttribute('x2',x.toFixed(1));l.setAttribute('y2',y.toFixed(1));
+      l.setAttribute('stroke','#262a33');l.setAttribute('stroke-width','1');
+      blades.appendChild(l);
+    }
+    const steps=[
+      ['OPTICAL SENSOR ARRAY','ONLINE'],
+      ['LENS CALIBRATION','✓'],
+      ['PIXEL SAMPLER','READY'],
+      ['ENHANCEMENT PIPELINE','LOADED'],
+      ['OCR ENGINE','STANDBY'],
+      ['LOCAL SESSION','SECURE']
+    ];
+    const lines=$('bootLines');
+    let i=0, killed=false;
+    function finish(){
+      if(killed)return; killed=true;
+      $('boot').classList.add('done');
+      logEvent('VYPER optical core online',true);
+      setTimeout(()=>$('boot').remove(),700);
+    }
+    function next(){
+      if(killed)return;
+      if(i>=steps.length){ 
+        const f=document.createElement('div'); f.className='ln in';
+        f.innerHTML='<span style="color:var(--amber)">CORE READY<span class="caret"></span></span>';
+        lines.appendChild(f);
+        setTimeout(finish,650); return;
+      }
+      const [label,val]=steps[i];
+      const row=document.createElement('div'); row.className='ln';
+      row.innerHTML=`<span>${label}</span><span class="ok ${val==='STANDBY'?'warn':''}">${val}</span>`;
+      lines.appendChild(row);
+      requestAnimationFrame(()=>row.classList.add('in'));
+      Snd.tick();
+      i++; setTimeout(next, 280+Math.random()*180);
+    }
+    $('bootSkip').onclick=finish;
+    $('boot').addEventListener('click',e=>{ if(e.target.id!=='bootSkip')finish(); });
+    setTimeout(()=>{ Snd.boot(); next(); }, 500);
+  })();
+
+  /* ===================== TELEMETRY / FPS ===================== */
+  let frameCount=0, lastFpsT=performance.now(), magActive=false;
+  function fpsLoop(now){
+    frameCount++;
+    if(now-lastFpsT>=500){
+      const fps=magActive?Math.round(frameCount/((now-lastFpsT)/1000)):0;
+      $('telFps').textContent=magActive?fps:'—';
+      frameCount=0; lastFpsT=now; magActive=false;
+    }
+    requestAnimationFrame(fpsLoop);
+  }
+  requestAnimationFrame(fpsLoop);
+
+  const img=$('img'), imgWrap=$('imgWrap'), empty=$('empty'), reticle=$('reticle');
+  const mag=$('mag'), mctx=mag.getContext('2d'), magCross=$('magCross'), magIdle=$('magIdle');
+  const fileInput=$('fileInput');
+  let loaded=false;
+
+  // off-screen full-res source for sampling
+  const src=document.createElement('canvas'), sctx=src.getContext('2d',{willReadFrequently:true});
+  let natW=0,natH=0;
+
+  /* clock */
+  setInterval(()=>{$('clock').textContent=new Date().toTimeString().slice(0,8)},1000);
+
+  /* toast */
+  let tT;
+  function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),2200)}
+
+  /* ---- filters ---- */
+  const fx={contrast:100,bright:100,sat:100,grayscale:false,invert:false};
+  function filterString(){
+    let f=`contrast(${fx.contrast}%) brightness(${fx.bright}%) saturate(${fx.sat}%)`;
+    if(fx.grayscale)f+=' grayscale(1)';
+    if(fx.invert)f+=' invert(1)';
+    return f;
+  }
+  function applyFilters(){
+    const sharp=+$('sharp').value;
+    img.style.filter=filterString();
+    // sharpen via subtle drop-shadow stacking would be heavy; use contrast bump on the canvas sample instead
+    drawMag();
+  }
+
+  /* ---- load image ---- */
+  function loadFromURL(url){
+    const im=new Image();
+    im.onload=()=>{
+      natW=im.naturalWidth; natH=im.naturalHeight;
+      src.width=natW; src.height=natH;
+      sctx.drawImage(im,0,0);
+      img.src=url; loaded=true;
+      empty.classList.add('hide');
+      imgWrap.classList.add('loaded');
+      $('canvasBar').style.display='flex';
+      $('dims').innerHTML=`<b>${natW}</b> × <b>${natH}</b> px`;
+      $('exportBtn').disabled=false;
+      $('ocrBtn').disabled=false;
+      $('edgeBtn').disabled=false;
+      $('enhanceBtn').disabled=false;
+      magIdle.style.display='flex';
+      $('telRes').textContent=natW+'×'+natH;
+      $('telMpx').textContent=((natW*natH)/1e6).toFixed(1);
+      Snd.whoosh();
+      logEvent('Image loaded · '+natW+'×'+natH+' ('+((natW*natH)/1e6).toFixed(1)+' MP)',true);
+      toast('Image loaded · '+natW+'×'+natH);
+    };
+    im.onerror=()=>toast('Could not read that image');
+    im.src=url;
+  }
+  function loadFromFile(file){
+    if(!file||!file.type.startsWith('image/')){toast('That file is not an image');return}
+    const r=new FileReader();
+    r.onload=e=>loadFromURL(e.target.result);
+    r.readAsDataURL(file);
+  }
+
+  $('browseBtn').onclick=()=>fileInput.click();
+  $('replaceBtn').onclick=()=>fileInput.click();
+  fileInput.onchange=e=>{if(e.target.files[0])loadFromFile(e.target.files[0])};
+
+  /* drag & drop */
+  ['dragenter','dragover'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();document.body.classList.add('dragging')}));
+  ['dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{e.preventDefault();if(ev==='drop'||e.relatedTarget===null)document.body.classList.remove('dragging')}));
+  document.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)loadFromFile(f)});
+
+  /* paste */
+  document.addEventListener('paste',e=>{
+    const items=e.clipboardData.items;
+    for(const it of items){if(it.type.startsWith('image/')){loadFromFile(it.getAsFile());return}}
+  });
+
+  /* ---- magnifier tracking ---- */
+  let lastX=.5,lastY=.5,lastTick=0;
+  function coreActive(ms){
+    const r=$('coreRing'); r.classList.add('fast');
+    clearTimeout(coreActive._t); coreActive._t=setTimeout(()=>r.classList.remove('fast'),ms||1200);
+  }
+  function drawMag(){
+    if(!loaded)return;
+    magActive=true;
+    const z=+$('zoom').value;
+    const sampleW=mag.width/z, sampleH=mag.height/z;
+    let sx=lastX*natW - sampleW/2, sy=lastY*natH - sampleH/2;
+    sx=Math.max(0,Math.min(natW-sampleW,sx));
+    sy=Math.max(0,Math.min(natH-sampleH,sy));
+    mctx.imageSmoothingEnabled=false;
+    mctx.clearRect(0,0,mag.width,mag.height);
+    mctx.filter=filterString();
+    try{ mctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,mag.width,mag.height); }catch(_){}
+    mctx.filter='none';
+    const sharpAmt=+$('sharp').value;
+    if(sharpAmt>0){ unsharpMask(mctx,mag.width,mag.height,sharpAmt/100); }
+    // readout
+    const px=Math.round(lastX*natW), py=Math.round(lastY*natH);
+    $('rCoord').textContent=px+', '+py;
+    $('telPx').textContent=px+','+py;
+    try{
+      const d=sctx.getImageData(Math.min(natW-1,px),Math.min(natH-1,py),1,1).data;
+      const hex='#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+      $('rHex').innerHTML=`<i class="swatch" style="background:${hex}"></i>${hex}`;
+      $('rRGB').textContent=`${d[0]} ${d[1]} ${d[2]}`;
+    }catch(_){}
+  }
+
+  imgWrap.addEventListener('mousemove',e=>{
+    if(!loaded)return;
+    const r=img.getBoundingClientRect();
+    lastX=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    lastY=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+    reticle.style.left=(e.clientX-imgWrap.getBoundingClientRect().left)+'px';
+    reticle.style.top=(e.clientY-imgWrap.getBoundingClientRect().top)+'px';
+    magIdle.style.display='none';
+    magCross.style.display='block';
+    if(performance.now()-lastTick>90){ Snd.tick(); lastTick=performance.now(); }
+    drawMag();
+  });
+  imgWrap.addEventListener('mouseleave',()=>{magCross.style.display='none';if(loaded)magIdle.style.display='flex'});
+
+  /* ---- sliders ---- */
+  function bindSlider(id,valId,suffix,key){
+    $(id).addEventListener('input',e=>{
+      const v=e.target.value;
+      $(valId).textContent=v+suffix;
+      if(key)fx[key]=+v;
+      if(id==='zoom'){$('rZoom').textContent=v+'×';$('telZoom').textContent=v+'×'}
+      applyFilters();
+    });
+  }
+  bindSlider('zoom','zoomVal','×',null);
+  bindSlider('contrast','contrastVal','%','contrast');
+  bindSlider('bright','brightVal','%','bright');
+  bindSlider('sat','satVal','%','sat');
+  $('sharp').addEventListener('input',e=>{$('sharpVal').textContent=e.target.value+'%';applyFilters();});
+
+  document.querySelectorAll('.toggle').forEach(b=>b.onclick=()=>{
+    b.classList.toggle('on');
+    fx[b.dataset.fx]=b.classList.contains('on');
+    applyFilters();
+  });
+
+  $('resetFx').onclick=()=>{
+    ['contrast','bright','sat'].forEach(k=>fx[k]=100);
+    fx.grayscale=fx.invert=false;
+    $('contrast').value=100;$('contrastVal').textContent='100%';
+    $('bright').value=100;$('brightVal').textContent='100%';
+    $('sat').value=100;$('satVal').textContent='100%';
+    $('sharp').value=0;$('sharpVal').textContent='0%';
+    document.querySelectorAll('.toggle').forEach(b=>b.classList.remove('on'));
+    applyFilters();
+    Snd.whoosh(); logEvent('Enhancements reset');
+    toast('Enhancements reset');
+  };
+
+  /* ---- export crop ---- */
+  $('exportBtn').onclick=()=>{
+    if(!loaded)return;
+    const z=+$('zoom').value;
+    const sampleW=natW/z, sampleH=natH/z;
+    let sx=lastX*natW-sampleW/2, sy=lastY*natH-sampleH/2;
+    sx=Math.max(0,Math.min(natW-sampleW,sx));
+    sy=Math.max(0,Math.min(natH-sampleH,sy));
+    const out=document.createElement('canvas');
+    const scale=2; out.width=sampleW*scale; out.height=sampleH*scale;
+    const octx=out.getContext('2d');
+    octx.imageSmoothingEnabled=false;
+    octx.filter=filterString();
+    octx.drawImage(src,sx,sy,sampleW,sampleH,0,0,out.width,out.height);
+    out.toBlob(b=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(b);
+      a.download='vyper-crop-'+Date.now()+'.png';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+      Snd.thunk(); coreActive(900);
+      logEvent('Crop exported · '+Math.round(sampleW*scale)+'×'+Math.round(sampleH*scale)+'px',true);
+      toast('Crop exported');
+    },'image/png');
+  };
+
+  /* ---- OCR ---- */
+  let tesseractReady=false;
+  $('ocrBtn').onclick=async()=>{
+    if(!loaded)return;
+    const out=$('ocrOut'), bar=$('ocrBar'), fill=$('ocrFill'), btn=$('ocrBtn');
+    out.classList.remove('placeholder'); out.textContent='Loading OCR engine…';
+    bar.classList.add('show'); fill.style.width='5%'; btn.disabled=true;
+    coreActive(20000); logEvent('OCR started');
+    try{
+      if(!tesseractReady){
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+          s.onload=res; s.onerror=()=>rej(new Error('cdn'));
+          document.head.appendChild(s);
+        });
+        tesseractReady=true;
+      }
+      out.textContent='Reading text…';
+      const {data}=await Tesseract.recognize(src,'eng',{
+        logger:m=>{if(m.status==='recognizing text')fill.style.width=(20+m.progress*80)+'%'}
+      });
+      const text=(data.text||'').trim();
+      out.textContent=text||'No readable text found in this image.';
+      const wc=text?text.split(/\s+/).filter(Boolean).length:0;
+      Snd.ok();
+      logEvent(text?('OCR complete · '+wc+' words'):'OCR complete · no text',true);
+      toast(text?'Text extracted':'No text found');
+    }catch(err){
+      out.classList.add('placeholder');
+      out.textContent='Could not load the OCR engine — check your connection and retry.';
+      Snd.buzz(); logEvent('OCR failed · engine unavailable');
+    }finally{
+      bar.classList.remove('show'); fill.style.width='0';
+      btn.disabled=false;
+    }
+  };
+
+  /* ===================== TIER 3 ===================== */
+
+  /* ---- Real unsharp mask ---- */
+  function unsharpMask(ctx,w,h,amount){
+    try{
+      const orig=ctx.getImageData(0,0,w,h);
+      const blur=ctx.getImageData(0,0,w,h); // will be blurred
+      // fast box blur 2-pass
+      const d=blur.data, od=orig.data;
+      const r=Math.max(1,Math.round(2+amount*4));
+      // horizontal pass
+      for(let y=0;y<h;y++){
+        for(let x=0;x<w;x++){
+          let rr=0,g=0,b=0,cnt=0;
+          for(let k=-r;k<=r;k++){
+            const nx=Math.min(w-1,Math.max(0,x+k));
+            const i=(y*w+nx)*4;
+            rr+=od[i];g+=od[i+1];b+=od[i+2];cnt++;
+          }
+          const i=(y*w+x)*4; d[i]=rr/cnt;d[i+1]=g/cnt;d[i+2]=b/cnt;
+        }
+      }
+      // apply unsharp: out = orig + amount*(orig - blur)
+      const out=ctx.createImageData(w,h); const od2=out.data;
+      for(let i=0;i<od.length;i+=4){
+        od2[i]  =Math.min(255,Math.max(0, od[i]  + amount*2*(od[i]  -d[i])));
+        od2[i+1]=Math.min(255,Math.max(0, od[i+1]+ amount*2*(od[i+1]-d[i+1])));
+        od2[i+2]=Math.min(255,Math.max(0, od[i+2]+ amount*2*(od[i+2]-d[i+2])));
+        od2[i+3]=od[i+3];
+      }
+      ctx.putImageData(out,0,0);
+    }catch(_){}
+  }
+
+  /* ---- Sobel edge detection ---- */
+  const edgeCanvas=$('edgeCanvas');
+  const ectx=edgeCanvas.getContext('2d');
+  let edgeOn=false, edgePending=false;
+
+  function runSobel(){
+    if(!loaded)return;
+    try{
+      // size edge canvas to match rendered image
+      const r=img.getBoundingClientRect();
+      edgeCanvas.width=r.width; edgeCanvas.height=r.height;
+      edgeCanvas.style.left=img.offsetLeft+'px';
+      edgeCanvas.style.top=img.offsetTop+'px';
+      edgeCanvas.style.width=r.width+'px';
+      edgeCanvas.style.height=r.height+'px';
+
+      // draw source at native size into off-screen canvas for sampling
+      const w=natW, h=natH, data=sctx.getImageData(0,0,w,h).data;
+      // grayscale
+      const gray=new Float32Array(w*h);
+      for(let i=0;i<w*h;i++) gray[i]=(data[i*4]*.299+data[i*4+1]*.587+data[i*4+2]*.114);
+
+      // Sobel kernels
+      const out=new Uint8ClampedArray(w*h*4);
+      for(let y=1;y<h-1;y++) for(let x=1;x<w-1;x++){
+        const gx=
+          -gray[(y-1)*w+(x-1)] +gray[(y-1)*w+(x+1)]
+          -2*gray[y*w+(x-1)]   +2*gray[y*w+(x+1)]
+          -gray[(y+1)*w+(x-1)] +gray[(y+1)*w+(x+1)];
+        const gy=
+          -gray[(y-1)*w+(x-1)] -2*gray[(y-1)*w+x] -gray[(y-1)*w+(x+1)]
+          +gray[(y+1)*w+(x-1)] +2*gray[(y+1)*w+x] +gray[(y+1)*w+(x+1)];
+        const mag=Math.min(255,Math.sqrt(gx*gx+gy*gy));
+        const i=(y*w+x)*4;
+        // amber tint on edges
+        out[i]=255; out[i+1]=182; out[i+2]=39; out[i+3]=mag>28?Math.min(220,mag*1.6):0;
+      }
+      // draw at native → scale down to canvas display size
+      const tmp=document.createElement('canvas'); tmp.width=w; tmp.height=h;
+      tmp.getContext('2d').putImageData(new ImageData(out,w,h),0,0);
+      ectx.clearRect(0,0,edgeCanvas.width,edgeCanvas.height);
+      ectx.drawImage(tmp,0,0,edgeCanvas.width,edgeCanvas.height);
+      logEvent('Edge trace complete · Sobel kernel',true);
+    }catch(e){ logEvent('Edge trace failed: '+e.message); }
+  }
+
+  function triggerScanLine(durationMs){
+    const sl=$('scanLine');
+    sl.style.setProperty('--sweep-dur',(durationMs/1000).toFixed(2)+'s');
+    sl.classList.remove('running');
+    void sl.offsetWidth; // reflow to restart animation
+    sl.classList.add('running');
+    sl.addEventListener('animationend',()=>sl.classList.remove('running'),{once:true});
+  }
+
+  $('edgeBtn').onclick=()=>{
+    if(!loaded)return;
+    edgeOn=!edgeOn;
+    const btn=$('edgeBtn');
+    if(edgeOn){
+      btn.classList.add('enhance-active');
+      coreActive(3000);
+      triggerScanLine(1800);
+      Snd.whoosh();
+      logEvent('Edge trace · running Sobel…');
+      // slight defer so scan line starts first
+      setTimeout(()=>{ runSobel(); edgeCanvas.classList.add('on'); },80);
+    } else {
+      btn.classList.remove('enhance-active');
+      edgeCanvas.classList.remove('on');
+      ectx.clearRect(0,0,edgeCanvas.width,edgeCanvas.height);
+      Snd.tick();
+      logEvent('Edge trace · off');
+    }
+  };
+
+  /* ---- ENHANCE sequence ---- */
+  const modal=$('enhanceModal');
+  const ePrev=$('enhancePreview');
+  const epctx=ePrev.getContext('2d');
+  let enhancing=false;
+
+  $('enhanceBtn').onclick=()=>{
+    if(!loaded||enhancing)return;
+    enhancing=true;
+    const btn=$('enhanceBtn');
+    btn.classList.add('enhance-active');
+    reticle.classList.add('locked');
+    coreActive(6000);
+    Snd.whoosh();
+
+    // capture region
+    const z=+$('zoom').value;
+    const sampleW=natW/z, sampleH=natH/z;
+    let sx=lastX*natW-sampleW/2, sy=lastY*natH-sampleH/2;
+    sx=Math.max(0,Math.min(natW-sampleW,sx));
+    sy=Math.max(0,Math.min(natH-sampleH,sy));
+    const cx=Math.round(lastX*natW), cy=Math.round(lastY*natH);
+
+    // set up preview canvas
+    ePrev.width=Math.round(sampleW); ePrev.height=Math.round(sampleH);
+    epctx.filter=filterString();
+    epctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,ePrev.width,ePrev.height);
+    epctx.filter='none';
+
+    $('enhanceCoords').innerHTML=`<span>X <b>${cx}</b></span><span>Y <b>${cy}</b></span><span>REGION <b>${Math.round(sampleW)}×${Math.round(sampleH)}</b></span>`;
+    $('enhanceLocked').classList.remove('show');
+    $('enhanceScan').classList.remove('on');
+
+    modal.classList.add('open');
+    triggerScanLine(2200);
+    logEvent('Enhance sequence · initiated at '+cx+','+cy);
+
+    // staged animation
+    const fill=$('enhanceFill');
+    const status=$('enhanceStatus');
+    const stages=[
+      [0, 'ACQUIRING REGION…', ()=>{ epctx.filter='blur(8px)'; epctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,ePrev.width,ePrev.height); epctx.filter='none'; $('enhanceScan').classList.add('on'); }],
+      [18,'STABILIZING SIGNAL…', ()=>{ epctx.filter='blur(4px) contrast(1.1)'; epctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,ePrev.width,ePrev.height); epctx.filter='none'; Snd.tick(); }],
+      [38,'DEBLUR PASS 1 / 3…', ()=>{ epctx.filter='blur(2px) contrast(1.2)'; epctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,ePrev.width,ePrev.height); epctx.filter='none'; Snd.tick(); }],
+      [56,'DEBLUR PASS 2 / 3…', ()=>{ epctx.filter='blur(.5px) contrast(1.3)'; epctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,ePrev.width,ePrev.height); epctx.filter='none'; Snd.tick(); }],
+      [74,'DEBLUR PASS 3 / 3…', ()=>{ epctx.filter='contrast(1.4)'; epctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,ePrev.width,ePrev.height); epctx.filter='none'; Snd.tick(); }],
+      [88,'APPLYING DETAIL PASS…',()=>{ epctx.filter=filterString(); epctx.drawImage(src,sx,sy,sampleW,sampleH,0,0,ePrev.width,ePrev.height); epctx.filter='none'; unsharpMask(epctx,ePrev.width,ePrev.height,.9); }],
+      [98,'LOCKING…', ()=>{ $('enhanceScan').classList.remove('on'); $('enhanceLocked').classList.add('show'); Snd.ok(); logEvent('Enhance · locked at '+cx+','+cy,true); }],
+    ];
+
+    let si=0;
+    function runStage(){
+      if(si>=stages.length){
+        fill.style.width='100%';
+        status.textContent='ENHANCE COMPLETE';
+        enhancing=false;
+        // close on click anywhere on modal
+        modal.addEventListener('click',closeEnhance,{once:true});
+        return;
+      }
+      const [pct,msg,fn]=stages[si++];
+      fill.style.width=pct+'%';
+      status.textContent=msg;
+      fn();
+      setTimeout(runStage,si===stages.length?600:340+Math.random()*200);
+    }
+    setTimeout(runStage,200);
+  };
+
+  function closeEnhance(){
+    modal.classList.remove('open');
+    reticle.classList.remove('locked');
+    $('enhanceBtn').classList.remove('enhance-active');
+    enhancing=false;
+    Snd.thunk();
+    logEvent('Enhance modal · closed');
+  }
+  modal.addEventListener('click',e=>{ if(e.target===modal)closeEnhance(); });
+
+  /* keyboard: O to browse, E to enhance, T to trace */
+  document.addEventListener('keydown',e=>{
+    if(document.activeElement.tagName==='INPUT')return;
+    if(e.key==='o'&&!e.metaKey&&!e.ctrlKey){ fileInput.click(); }
+    if(e.key==='e'&&!e.metaKey){ $('enhanceBtn').click(); }
+    if(e.key==='t'&&!e.metaKey){ $('edgeBtn').click(); }
+  });
+
+  /* ===================== GEO SCAN ===================== */
+  let geoMap=null, geoMarker=null;
+  function initMap(){
+    if(geoMap)return;
+    geoMap=L.map('geoMap',{zoomControl:true,attributionControl:false}).setView([20,0],2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(geoMap);
+  }
+  // lazy init map when module scrolls into view
+  const geoObs=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting){initMap();geoObs.disconnect();}
+  },{threshold:.1});
+  geoObs.observe($('geoMap'));
+
+  function geoPin(lat,lng,label,country){
+    initMap();
+    if(geoMarker)geoMap.removeLayer(geoMarker);
+    const icon=L.divIcon({className:'',html:`<div style="width:12px;height:12px;border:2px solid #ffb627;border-radius:50%;background:rgba(255,182,39,.4);box-shadow:0 0 10px #ffb627"></div>`,iconSize:[12,12],iconAnchor:[6,6]});
+    geoMarker=L.marker([lat,lng],{icon}).addTo(geoMap);
+    geoMap.flyTo([lat,lng],12,{duration:1.4});
+    $('geoLat').textContent=lat.toFixed(5);
+    $('geoLng').textContent=lng.toFixed(5);
+    $('geoName').textContent=label||'—';
+    $('geoCountry').textContent=country||'—';
+    logEvent('GeoScan · '+label+' ('+lat.toFixed(3)+','+lng.toFixed(3)+')',true);
+    Snd.ok();
+  }
+
+  async function geoSearch(query){
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+        {headers:{'Accept-Language':'en'}});
+      const d=await r.json();
+      if(!d.length){toast('Location not found');Snd.buzz();return;}
+      const p=d[0];
+      const parts=p.display_name.split(',');
+      geoPin(+p.lat,+p.lon,parts[0].trim(),(parts[parts.length-1]||'').trim());
+    }catch(e){toast('Geo lookup failed');Snd.buzz();}
+  }
+
+  $('geoSearchBtn').onclick=()=>{const v=$('geoInput').value.trim();if(v)geoSearch(v);};
+  $('geoInput').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=$('geoInput').value.trim();if(v)geoSearch(v);}});
+  $('geoLocBtn').onclick=()=>{
+    if(!navigator.geolocation){toast('Geolocation not supported');return;}
+    toast('Detecting location…');
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const {latitude:lat,longitude:lng}=pos.coords;
+      try{
+        const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+          {headers:{'Accept-Language':'en'}});
+        const d=await r.json();
+        const label=(d.address?.city||d.address?.town||d.address?.village||d.address?.county||'Your location');
+        const country=d.address?.country||'—';
+        geoPin(lat,lng,label,country);
+      }catch(e){ geoPin(lat,lng,'Your location','—'); }
+    },()=>{toast('Location access denied');Snd.buzz();});
+  };
+
+  /* ===================== LEXICON ===================== */
+  async function lexDefine(word){
+    const out=$('lexResult');
+    out.innerHTML='<div class="lex-empty">Querying…</div>';
+    try{
+      const r=await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.trim())}`);
+      if(!r.ok)throw new Error('not found');
+      const [entry]=await r.json();
+      let html=`<div class="lex-word">${entry.word}</div>`;
+      const ph=(entry.phonetics||[]).find(p=>p.text);
+      if(ph)html+=`<div class="lex-phonetic">${ph.text}</div>`;
+      (entry.meanings||[]).slice(0,4).forEach(m=>{
+        html+=`<div class="lex-pos">${m.partOfSpeech}</div>`;
+        (m.definitions||[]).slice(0,2).forEach(d=>{
+          html+=`<div class="lex-def">${d.definition}</div>`;
+          if(d.example)html+=`<div class="lex-example">"${d.example}"</div>`;
+        });
+      });
+      out.innerHTML=html;
+      logEvent('Lexicon · defined "'+entry.word+'"',true);
+      Snd.ok();
+    }catch(e){
+      out.innerHTML='<div class="lex-empty">Word not found in dictionary.</div>';
+      Snd.buzz(); logEvent('Lexicon · "'+word+'" not found');
+    }
+  }
+
+  $('lexBtn').onclick=()=>{const v=$('lexInput').value.trim();if(v)lexDefine(v);};
+  $('lexInput').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=$('lexInput').value.trim();if(v)lexDefine(v);}});
+
+  /* ===================== VOICE CORE ===================== */
+  const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const voiceOrb=$('voiceOrb'), voiceStatus=$('voiceStatus'), voiceTx=$('voiceTranscript'), voiceResp=$('voiceResponse'), voiceKw=$('voiceKeywords');
+
+  if(!SpeechRec){
+    voiceOrb.innerHTML='<div class="no-speech">Speech not supported in this browser. Try Chrome.</div>';
+    voiceOrb.style.cursor='default';
+  } else {
+    const rec=new SpeechRec();
+    rec.continuous=false; rec.interimResults=true; rec.lang='en-US';
+    let isListening=false;
+
+    // ---- keyword intent engine ----
+    const INTENTS=[
+      {name:'ENHANCE',  keys:['enhance','zoom in','enlarge','magnify','sharpen','focus','boost','amplify'],   priority:10},
+      {name:'EDGE',     keys:['edge','trace','outline','sobel','detect edges','edges'],                       priority:9},
+      {name:'EXPORT',   keys:['export','save','download','crop','capture'],                                   priority:9},
+      {name:'OCR',      keys:['read','extract text','scan text','ocr','words','text'],                        priority:8},
+      {name:'GEO',      keys:['locate','map','find','where is','geo','satellite','scan location','navigate'], priority:8},
+      {name:'DEFINE',   keys:['define','meaning','what is','dictionary','word','lexicon','lookup'],           priority:8},
+      {name:'RESET',    keys:['reset','clear','undo','restore','default'],                                    priority:7},
+      {name:'STATUS',   keys:['status','report','system','online','ready','check'],                           priority:6},
+      {name:'GREET',    keys:['hello','hey vyper','hi','good morning','morning','greetings','wake up'],       priority:5},
+      {name:'HELP',     keys:['help','what can you','commands','options','capabilities'],                     priority:4},
+    ];
+
+    function classifyIntent(text){
+      const lower=text.toLowerCase();
+      let best=null, bestScore=0, foundKeys=[];
+      INTENTS.forEach(intent=>{
+        const hits=intent.keys.filter(k=>lower.includes(k));
+        const score=hits.length*intent.priority;
+        if(score>bestScore){bestScore=score;best=intent.name;foundKeys=hits;}
+      });
+      // extract potential word to define
+      const defineMatch=lower.match(/(?:define|meaning of|what is)\s+([a-z]+)/i);
+      const defineWord=defineMatch?defineMatch[1]:null;
+      // extract potential geo query
+      const geoMatch=lower.match(/(?:locate|map|find|where is|navigate to)\s+(.+)/i);
+      const geoQuery=geoMatch?geoMatch[1].trim():null;
+      return {intent:best||'UNKNOWN',score:bestScore,keys:foundKeys,defineWord,geoQuery};
+    }
+
+    const RESPONSES={
+      GREET: ['VYPER optical core online. All systems nominal. How can I assist?','System ready. Awaiting your directive.','Online. What do you need?'],
+      ENHANCE: ['Initiating enhance sequence.','Executing enhancement protocol.','Enhance directive received. Processing.'],
+      EDGE: ['Activating Sobel edge trace.','Edge detection protocol engaged.'],
+      EXPORT: ['Exporting current crop region.','Crop export initiated.'],
+      OCR: ['Running optical character recognition.','Scanning for readable text.'],
+      GEO: ['Scanning coordinates.','Geo link established. Mapping now.'],
+      DEFINE: ['Querying lexicon database.','Definition retrieved.'],
+      RESET: ['Resetting enhancement parameters.','All values restored to baseline.'],
+      STATUS: ['All seven modules online. Optical core nominal. Session secure.','System check complete. No anomalies detected.'],
+      HELP: ['I can enhance images, trace edges, extract text, locate places, define words, and export crops. Try speaking any of those commands.','Available directives: enhance, edge trace, export crop, read text, locate a place, define a word, reset filters.'],
+      UNKNOWN: ['Directive unclear. Could you rephrase?','Intent not recognised. Try: enhance, locate, define, or export.'],
+    };
+
+    function speak(text){
+      if(!window.speechSynthesis)return;
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.rate=.94; u.pitch=.85; u.volume=.9;
+      // prefer a deeper voice if available
+      const voices=window.speechSynthesis.getVoices();
+      const pref=voices.find(v=>/david|alex|daniel|google uk|zira/i.test(v.name));
+      if(pref)u.voice=pref;
+      u.onstart=()=>{ voiceOrb.classList.add('speaking'); voiceStatus.className='voice-status speaking'; voiceStatus.textContent='SPEAKING…'; };
+      u.onend=()=>{ voiceOrb.classList.remove('speaking'); voiceStatus.className='voice-status'; voiceStatus.textContent='Click orb to activate'; };
+      window.speechSynthesis.speak(u);
+    }
+
+    function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+    function handleFinal(text){
+      voiceTx.textContent='"'+text+'"';
+      const {intent,keys,defineWord,geoQuery}=classifyIntent(text);
+      // show detected keywords
+      voiceKw.innerHTML=keys.map(k=>`<span class="kw">${k}</span>`).join('');
+      // pick response text
+      const responseText=pickRandom(RESPONSES[intent]||RESPONSES.UNKNOWN);
+      voiceResp.textContent='VYPER: '+responseText;
+      voiceResp.classList.add('show');
+      logEvent('Voice · intent='+intent+' · "'+text+'"',true);
+      speak(responseText);
+      // execute action
+      setTimeout(()=>{
+        if(intent==='ENHANCE') $('enhanceBtn').click();
+        else if(intent==='EDGE') $('edgeBtn').click();
+        else if(intent==='EXPORT') $('exportBtn').click();
+        else if(intent==='OCR') $('ocrBtn').click();
+        else if(intent==='RESET') $('resetFx').click();
+        else if(intent==='GEO'&&geoQuery){ $('geoInput').value=geoQuery; geoSearch(geoQuery); }
+        else if(intent==='GEO') $('geoLocBtn').click();
+        else if(intent==='DEFINE'&&defineWord){ $('lexInput').value=defineWord; lexDefine(defineWord); }
+      },400);
+    }
+
+    rec.onresult=e=>{
+      let interim='',final='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+        else interim+=e.results[i][0].transcript;
+      }
+      voiceTx.textContent=interim||final||'…';
+      if(final)handleFinal(final.trim());
+    };
+    rec.onerror=e=>{ voiceStatus.className='voice-status'; voiceStatus.textContent='Error: '+e.error; isListening=false; voiceOrb.classList.remove('listening'); Snd.buzz(); };
+    rec.onend=()=>{ isListening=false; voiceOrb.classList.remove('listening'); if(voiceStatus.textContent==='LISTENING…'){voiceStatus.className='voice-status';voiceStatus.textContent='Click orb to activate';} };
+
+    // preload voices
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
+
+    voiceOrb.onclick=()=>{
+      if(isListening){ rec.stop(); return; }
+      Snd.enable(); // unlock audio context on same gesture
+      isListening=true;
+      voiceOrb.classList.add('listening');
+      voiceStatus.className='voice-status active'; voiceStatus.textContent='LISTENING…';
+      voiceTx.textContent='…';
+      voiceResp.classList.remove('show');
+      voiceKw.innerHTML='';
+      try{ rec.start(); }catch(_){ rec.stop(); setTimeout(()=>rec.start(),200); }
+      Snd.tick();
+      logEvent('Voice · listening');
+    };
+
+    // greet on boot after delay
+    setTimeout(()=>{
+      const greeting='VYPER optical core online. All systems active. Awaiting your directive.';
+      voiceResp.textContent='VYPER: '+greeting; voiceResp.classList.add('show');
+      voiceTx.textContent='System boot complete.';
+      speak(greeting);
+      logEvent('Voice · boot greeting',true);
+    },5500);
+  }
+})();
+</script>
 </body>
 </html>
