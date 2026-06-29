@@ -331,7 +331,41 @@
   /* enhance chip active state */
   .chip.enhance-active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
 
-  /* ===== GEO SCAN ===== */
+  /* ===== GEO SCAN MODAL ===== */
+  #geoModal{
+    position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;
+    background:rgba(10,11,14,.75);backdrop-filter:blur(3px);
+  }
+  #geoModal.open{display:flex}
+  .geo-hud{
+    width:min(820px,92vw);border:1px solid var(--amber);border-radius:10px;
+    background:rgba(10,11,14,.96);overflow:hidden;position:relative;
+    box-shadow:0 0 60px rgba(255,182,39,.12);
+  }
+  .geo-hud-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#101218,#0c0e13);
+  }
+  .geo-hud-header .title{font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--amber)}
+  .geo-hud-header .coords{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.1em}
+  .geo-hud-header .coords b{color:var(--ice)}
+  .geo-hud-close{background:none;border:1px solid var(--line);color:var(--muted);font-family:var(--mono);
+    font-size:10px;letter-spacing:.16em;padding:6px 12px;border-radius:5px;cursor:pointer;text-transform:uppercase;transition:.15s}
+  .geo-hud-close:hover{border-color:var(--amber);color:var(--amber)}
+  #geoModalMap{width:100%;height:480px;background:#0a0b0e}
+  .geo-hud-footer{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);
+    border-top:1px solid var(--line);
+  }
+  .geo-hud-footer div{background:var(--panel-2);padding:10px 14px}
+  .geo-hud-footer span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;margin-bottom:3px}
+  .geo-hud-footer b{font-family:var(--mono);font-size:11.5px;color:var(--ice)}
+  /* scan line inside modal */
+  .geo-scan-line{position:absolute;left:0;right:0;height:2px;top:0;pointer-events:none;z-index:2;
+    background:linear-gradient(90deg,transparent,rgba(255,182,39,.9),transparent);
+    box-shadow:0 0 14px 3px rgba(255,182,39,.4);display:none}
+  .geo-scan-line.on{display:block;animation:scanSweep 1.6s linear forwards}
   #geoMap{width:100%;height:220px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d0f14}
   .geo-bar{display:flex;gap:7px;margin-top:11px}
   .geo-bar input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
@@ -396,6 +430,15 @@
     padding:3px 8px;border-radius:4px}
   .voice-hint{font-size:11px;color:var(--muted-2);line-height:1.6;margin-top:10px;font-family:var(--mono);letter-spacing:.04em}
   .no-speech{font-family:var(--mono);font-size:10.5px;color:var(--muted-2);letter-spacing:.1em;text-align:center;padding:8px}
+
+  /* text input bar */
+  .voice-chat-bar{display:flex;gap:7px;margin-bottom:10px}
+  .voice-chat-bar input{
+    flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    color:var(--ice);font-family:var(--mono);font-size:11.5px;padding:9px 13px;outline:none;letter-spacing:.05em;
+  }
+  .voice-chat-bar input:focus{border-color:var(--amber)}
+  .voice-chat-bar input::placeholder{color:var(--muted-2)}
 </style>
 </head>
 <body>
@@ -609,6 +652,12 @@
         </div>
         <div class="voice-status" id="voiceStatus">Click orb to activate</div>
         <div class="voice-transcript" id="voiceTranscript">Awaiting input…</div>
+        <div class="voice-chat-bar">
+          <input id="voiceTextInput" placeholder="Type a command…" autocomplete="off">
+          <button class="chip" id="voiceTextSend">
+            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+          </button>
+        </div>
         <div class="voice-response" id="voiceResponse"></div>
         <div class="voice-keywords" id="voiceKeywords"></div>
         <p class="voice-hint">Try: "enhance the image" · "locate London" · "define serendipity" · "what can you do"</p>
@@ -618,6 +667,27 @@
 
   <div class="toast" id="toast"></div>
   <input type="file" id="fileInput" accept="image/*" hidden>
+
+  <!-- GEO SCAN MODAL -->
+  <div id="geoModal">
+    <div class="geo-hud">
+      <div class="geo-hud-header">
+        <span class="title">⬡ VYPER GEO SCAN</span>
+        <span class="coords"><b id="geoModalLat">—</b> / <b id="geoModalLng">—</b></span>
+        <button class="geo-hud-close" id="geoModalClose">✕ Close</button>
+      </div>
+      <div style="position:relative">
+        <div id="geoModalMap"></div>
+        <div class="geo-scan-line" id="geoScanLine"></div>
+      </div>
+      <div class="geo-hud-footer">
+        <div><span>Location</span><b id="geoModalName">—</b></div>
+        <div><span>Country</span><b id="geoModalCountry">—</b></div>
+        <div><span>Latitude</span><b id="geoModalLatF">—</b></div>
+        <div><span>Longitude</span><b id="geoModalLngF">—</b></div>
+      </div>
+    </div>
+  </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1152,11 +1222,16 @@
   });
 
   /* ===================== GEO SCAN ===================== */
-  let geoMap=null, geoMarker=null;
+  let geoMap=null, geoMarker=null, geoModalMap=null, geoModalMarker=null;
   function initMap(){
     if(geoMap)return;
     geoMap=L.map('geoMap',{zoomControl:true,attributionControl:false}).setView([20,0],2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(geoMap);
+  }
+  function initModalMap(){
+    if(geoModalMap)return;
+    geoModalMap=L.map('geoModalMap',{zoomControl:true,attributionControl:false}).setView([20,0],2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(geoModalMap);
   }
   // lazy init map when module scrolls into view
   const geoObs=new IntersectionObserver(entries=>{
@@ -1164,17 +1239,47 @@
   },{threshold:.1});
   geoObs.observe($('geoMap'));
 
+  const geoModal=$('geoModal');
+  $('geoModalClose').onclick=()=>{ geoModal.classList.remove('open'); Snd.thunk(); };
+  geoModal.addEventListener('click',e=>{ if(e.target===geoModal){ geoModal.classList.remove('open'); Snd.thunk(); } });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') geoModal.classList.remove('open'); });
+
+  const geoIcon=()=>L.divIcon({className:'',html:`<div style="width:14px;height:14px;border:2px solid #ffb627;border-radius:50%;background:rgba(255,182,39,.4);box-shadow:0 0 12px #ffb627"></div>`,iconSize:[14,14],iconAnchor:[7,7]});
+
   function geoPin(lat,lng,label,country){
     initMap();
+    // update sidebar mini-map
     if(geoMarker)geoMap.removeLayer(geoMarker);
-    const icon=L.divIcon({className:'',html:`<div style="width:12px;height:12px;border:2px solid #ffb627;border-radius:50%;background:rgba(255,182,39,.4);box-shadow:0 0 10px #ffb627"></div>`,iconSize:[12,12],iconAnchor:[6,6]});
-    geoMarker=L.marker([lat,lng],{icon}).addTo(geoMap);
-    geoMap.flyTo([lat,lng],12,{duration:1.4});
+    geoMarker=L.marker([lat,lng],{icon:geoIcon()}).addTo(geoMap);
+    geoMap.flyTo([lat,lng],10,{duration:1.2});
+    // fill sidebar readout
     $('geoLat').textContent=lat.toFixed(5);
     $('geoLng').textContent=lng.toFixed(5);
     $('geoName').textContent=label||'—';
     $('geoCountry').textContent=country||'—';
+    // open modal
+    geoModal.classList.add('open');
+    initModalMap();
+    if(geoModalMarker)geoModalMap.removeLayer(geoModalMarker);
+    geoModalMarker=L.marker([lat,lng],{icon:geoIcon()}).addTo(geoModalMap);
+    // invalidate size after modal renders, then fly
+    setTimeout(()=>{
+      geoModalMap.invalidateSize();
+      geoModalMap.flyTo([lat,lng],13,{duration:1.6});
+    },60);
+    // fill modal readout
+    $('geoModalLat').textContent=lat.toFixed(4);
+    $('geoModalLng').textContent=lng.toFixed(4);
+    $('geoModalName').textContent=label||'—';
+    $('geoModalCountry').textContent=country||'—';
+    $('geoModalLatF').textContent=lat.toFixed(6);
+    $('geoModalLngF').textContent=lng.toFixed(6);
+    // scan line
+    const sl=$('geoScanLine');
+    sl.classList.remove('on'); void sl.offsetWidth; sl.classList.add('on');
+    sl.addEventListener('animationend',()=>sl.classList.remove('on'),{once:true});
     logEvent('GeoScan · '+label+' ('+lat.toFixed(3)+','+lng.toFixed(3)+')',true);
+    coreActive(2000);
     Snd.ok();
   }
 
@@ -1242,98 +1347,111 @@
   const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
   const voiceOrb=$('voiceOrb'), voiceStatus=$('voiceStatus'), voiceTx=$('voiceTranscript'), voiceResp=$('voiceResponse'), voiceKw=$('voiceKeywords');
 
+  // ---- keyword intent engine (shared by voice + text) ----
+  const INTENTS=[
+    {name:'ENHANCE',  keys:['enhance','zoom in','enlarge','magnify','sharpen','focus','boost','amplify'],   priority:10},
+    {name:'EDGE',     keys:['edge','trace','outline','sobel','detect edges','edges'],                       priority:9},
+    {name:'EXPORT',   keys:['export','save','download','crop','capture'],                                   priority:9},
+    {name:'OCR',      keys:['read','extract text','scan text','ocr','words','text'],                        priority:8},
+    {name:'GEO',      keys:['locate','map','find','where is','geo','satellite','scan location','navigate'], priority:8},
+    {name:'DEFINE',   keys:['define','meaning','what is','dictionary','word','lexicon','lookup'],           priority:8},
+    {name:'RESET',    keys:['reset','clear','undo','restore','default'],                                    priority:7},
+    {name:'STATUS',   keys:['status','report','system','online','ready','check'],                           priority:6},
+    {name:'GREET',    keys:['hello','hey vyper','hi','good morning','morning','greetings','wake up'],       priority:5},
+    {name:'HELP',     keys:['help','what can you','commands','options','capabilities'],                     priority:4},
+  ];
+
+  function classifyIntent(text){
+    const lower=text.toLowerCase();
+    let best=null, bestScore=0, foundKeys=[];
+    INTENTS.forEach(intent=>{
+      const hits=intent.keys.filter(k=>lower.includes(k));
+      const score=hits.length*intent.priority;
+      if(score>bestScore){bestScore=score;best=intent.name;foundKeys=hits;}
+    });
+    const defineMatch=lower.match(/(?:define|meaning of|what is)\s+([a-z]+)/i);
+    const defineWord=defineMatch?defineMatch[1]:null;
+    const geoMatch=lower.match(/(?:locate|map|find|where is|navigate to)\s+(.+)/i);
+    const geoQuery=geoMatch?geoMatch[1].trim():null;
+    return {intent:best||'UNKNOWN',score:bestScore,keys:foundKeys,defineWord,geoQuery};
+  }
+
+  const RESPONSES={
+    GREET: ['VYPER optical core online. All systems nominal. How can I assist?','System ready. Awaiting your directive.','Online. What do you need?'],
+    ENHANCE: ['Initiating enhance sequence.','Executing enhancement protocol.','Enhance directive received. Processing.'],
+    EDGE: ['Activating Sobel edge trace.','Edge detection protocol engaged.'],
+    EXPORT: ['Exporting current crop region.','Crop export initiated.'],
+    OCR: ['Running optical character recognition.','Scanning for readable text.'],
+    GEO: ['Scanning coordinates.','Geo link established. Mapping now.'],
+    DEFINE: ['Querying lexicon database.','Definition retrieved.'],
+    RESET: ['Resetting enhancement parameters.','All values restored to baseline.'],
+    STATUS: ['All seven modules online. Optical core nominal. Session secure.','System check complete. No anomalies detected.'],
+    HELP: ['I can enhance images, trace edges, extract text, locate places, define words, and export crops. Try typing or speaking any of those commands.','Available directives: enhance, edge trace, export crop, read text, locate a place, define a word, reset filters.'],
+    UNKNOWN: ['Directive unclear. Could you rephrase?','Intent not recognised. Try: enhance, locate, define, or export.'],
+  };
+
+  function speak(text){
+    if(!window.speechSynthesis)return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.rate=.94; u.pitch=.85; u.volume=.9;
+    const voices=window.speechSynthesis.getVoices();
+    const pref=voices.find(v=>/david|alex|daniel|google uk|zira/i.test(v.name));
+    if(pref)u.voice=pref;
+    u.onstart=()=>{ voiceOrb.classList.add('speaking'); voiceStatus.className='voice-status speaking'; voiceStatus.textContent='SPEAKING…'; };
+    u.onend=()=>{ voiceOrb.classList.remove('speaking'); voiceStatus.className='voice-status'; voiceStatus.textContent=SpeechRec?'Click orb to activate':'Text mode'; };
+    window.speechSynthesis.speak(u);
+  }
+
+  function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function handleFinal(text, fromText){
+    voiceTx.textContent=(fromText?'> ':'"')+text+(fromText?'':'"');
+    const {intent,keys,defineWord,geoQuery}=classifyIntent(text);
+    voiceKw.innerHTML=keys.map(k=>`<span class="kw">${k}</span>`).join('');
+    const responseText=pickRandom(RESPONSES[intent]||RESPONSES.UNKNOWN);
+    voiceResp.textContent='VYPER: '+responseText;
+    voiceResp.classList.add('show');
+    logEvent('Voice · intent='+intent+' · "'+text+'"',true);
+    speak(responseText);
+    setTimeout(()=>{
+      if(intent==='ENHANCE') $('enhanceBtn').click();
+      else if(intent==='EDGE') $('edgeBtn').click();
+      else if(intent==='EXPORT') $('exportBtn').click();
+      else if(intent==='OCR') $('ocrBtn').click();
+      else if(intent==='RESET') $('resetFx').click();
+      else if(intent==='GEO'&&geoQuery){ $('geoInput').value=geoQuery; geoSearch(geoQuery); }
+      else if(intent==='GEO') $('geoLocBtn').click();
+      else if(intent==='DEFINE'&&defineWord){ $('lexInput').value=defineWord; lexDefine(defineWord); }
+    },400);
+  }
+
+  // ---- text input wiring (always available) ----
+  function sendTextCommand(){
+    const inp=$('voiceTextInput');
+    const v=inp.value.trim(); if(!v)return;
+    inp.value='';
+    Snd.tick();
+    handleFinal(v, true);
+  }
+  $('voiceTextSend').onclick=sendTextCommand;
+  $('voiceTextInput').addEventListener('keydown',e=>{ if(e.key==='Enter')sendTextCommand(); });
+  // Numpad 5 — focus the command input from anywhere
+  document.addEventListener('keydown',e=>{
+    if(e.code==='Numpad5'){ e.preventDefault(); const inp=$('voiceTextInput'); inp.focus(); inp.select(); Snd.tick(); }
+  });
+
+  // preload voices
+  if(window.speechSynthesis){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices(); }
+
   if(!SpeechRec){
-    voiceOrb.innerHTML='<div class="no-speech">Speech not supported in this browser. Try Chrome.</div>';
+    voiceOrb.innerHTML='<div class="no-speech">Mic: Chrome only.<br>Text input works in all browsers.</div>';
     voiceOrb.style.cursor='default';
+    voiceStatus.textContent='Text mode active';
   } else {
     const rec=new SpeechRec();
     rec.continuous=false; rec.interimResults=true; rec.lang='en-US';
     let isListening=false;
-
-    // ---- keyword intent engine ----
-    const INTENTS=[
-      {name:'ENHANCE',  keys:['enhance','zoom in','enlarge','magnify','sharpen','focus','boost','amplify'],   priority:10},
-      {name:'EDGE',     keys:['edge','trace','outline','sobel','detect edges','edges'],                       priority:9},
-      {name:'EXPORT',   keys:['export','save','download','crop','capture'],                                   priority:9},
-      {name:'OCR',      keys:['read','extract text','scan text','ocr','words','text'],                        priority:8},
-      {name:'GEO',      keys:['locate','map','find','where is','geo','satellite','scan location','navigate'], priority:8},
-      {name:'DEFINE',   keys:['define','meaning','what is','dictionary','word','lexicon','lookup'],           priority:8},
-      {name:'RESET',    keys:['reset','clear','undo','restore','default'],                                    priority:7},
-      {name:'STATUS',   keys:['status','report','system','online','ready','check'],                           priority:6},
-      {name:'GREET',    keys:['hello','hey vyper','hi','good morning','morning','greetings','wake up'],       priority:5},
-      {name:'HELP',     keys:['help','what can you','commands','options','capabilities'],                     priority:4},
-    ];
-
-    function classifyIntent(text){
-      const lower=text.toLowerCase();
-      let best=null, bestScore=0, foundKeys=[];
-      INTENTS.forEach(intent=>{
-        const hits=intent.keys.filter(k=>lower.includes(k));
-        const score=hits.length*intent.priority;
-        if(score>bestScore){bestScore=score;best=intent.name;foundKeys=hits;}
-      });
-      // extract potential word to define
-      const defineMatch=lower.match(/(?:define|meaning of|what is)\s+([a-z]+)/i);
-      const defineWord=defineMatch?defineMatch[1]:null;
-      // extract potential geo query
-      const geoMatch=lower.match(/(?:locate|map|find|where is|navigate to)\s+(.+)/i);
-      const geoQuery=geoMatch?geoMatch[1].trim():null;
-      return {intent:best||'UNKNOWN',score:bestScore,keys:foundKeys,defineWord,geoQuery};
-    }
-
-    const RESPONSES={
-      GREET: ['VYPER optical core online. All systems nominal. How can I assist?','System ready. Awaiting your directive.','Online. What do you need?'],
-      ENHANCE: ['Initiating enhance sequence.','Executing enhancement protocol.','Enhance directive received. Processing.'],
-      EDGE: ['Activating Sobel edge trace.','Edge detection protocol engaged.'],
-      EXPORT: ['Exporting current crop region.','Crop export initiated.'],
-      OCR: ['Running optical character recognition.','Scanning for readable text.'],
-      GEO: ['Scanning coordinates.','Geo link established. Mapping now.'],
-      DEFINE: ['Querying lexicon database.','Definition retrieved.'],
-      RESET: ['Resetting enhancement parameters.','All values restored to baseline.'],
-      STATUS: ['All seven modules online. Optical core nominal. Session secure.','System check complete. No anomalies detected.'],
-      HELP: ['I can enhance images, trace edges, extract text, locate places, define words, and export crops. Try speaking any of those commands.','Available directives: enhance, edge trace, export crop, read text, locate a place, define a word, reset filters.'],
-      UNKNOWN: ['Directive unclear. Could you rephrase?','Intent not recognised. Try: enhance, locate, define, or export.'],
-    };
-
-    function speak(text){
-      if(!window.speechSynthesis)return;
-      window.speechSynthesis.cancel();
-      const u=new SpeechSynthesisUtterance(text);
-      u.rate=.94; u.pitch=.85; u.volume=.9;
-      // prefer a deeper voice if available
-      const voices=window.speechSynthesis.getVoices();
-      const pref=voices.find(v=>/david|alex|daniel|google uk|zira/i.test(v.name));
-      if(pref)u.voice=pref;
-      u.onstart=()=>{ voiceOrb.classList.add('speaking'); voiceStatus.className='voice-status speaking'; voiceStatus.textContent='SPEAKING…'; };
-      u.onend=()=>{ voiceOrb.classList.remove('speaking'); voiceStatus.className='voice-status'; voiceStatus.textContent='Click orb to activate'; };
-      window.speechSynthesis.speak(u);
-    }
-
-    function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-    function handleFinal(text){
-      voiceTx.textContent='"'+text+'"';
-      const {intent,keys,defineWord,geoQuery}=classifyIntent(text);
-      // show detected keywords
-      voiceKw.innerHTML=keys.map(k=>`<span class="kw">${k}</span>`).join('');
-      // pick response text
-      const responseText=pickRandom(RESPONSES[intent]||RESPONSES.UNKNOWN);
-      voiceResp.textContent='VYPER: '+responseText;
-      voiceResp.classList.add('show');
-      logEvent('Voice · intent='+intent+' · "'+text+'"',true);
-      speak(responseText);
-      // execute action
-      setTimeout(()=>{
-        if(intent==='ENHANCE') $('enhanceBtn').click();
-        else if(intent==='EDGE') $('edgeBtn').click();
-        else if(intent==='EXPORT') $('exportBtn').click();
-        else if(intent==='OCR') $('ocrBtn').click();
-        else if(intent==='RESET') $('resetFx').click();
-        else if(intent==='GEO'&&geoQuery){ $('geoInput').value=geoQuery; geoSearch(geoQuery); }
-        else if(intent==='GEO') $('geoLocBtn').click();
-        else if(intent==='DEFINE'&&defineWord){ $('lexInput').value=defineWord; lexDefine(defineWord); }
-      },400);
-    }
 
     rec.onresult=e=>{
       let interim='',final='';
@@ -1342,18 +1460,14 @@
         else interim+=e.results[i][0].transcript;
       }
       voiceTx.textContent=interim||final||'…';
-      if(final)handleFinal(final.trim());
+      if(final)handleFinal(final.trim(), false);
     };
     rec.onerror=e=>{ voiceStatus.className='voice-status'; voiceStatus.textContent='Error: '+e.error; isListening=false; voiceOrb.classList.remove('listening'); Snd.buzz(); };
     rec.onend=()=>{ isListening=false; voiceOrb.classList.remove('listening'); if(voiceStatus.textContent==='LISTENING…'){voiceStatus.className='voice-status';voiceStatus.textContent='Click orb to activate';} };
 
-    // preload voices
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices();
-
     voiceOrb.onclick=()=>{
       if(isListening){ rec.stop(); return; }
-      Snd.enable(); // unlock audio context on same gesture
+      Snd.enable();
       isListening=true;
       voiceOrb.classList.add('listening');
       voiceStatus.className='voice-status active'; voiceStatus.textContent='LISTENING…';
@@ -1365,7 +1479,7 @@
       logEvent('Voice · listening');
     };
 
-    // greet on boot after delay
+    // greet on boot
     setTimeout(()=>{
       const greeting='VYPER optical core online. All systems active. Awaiting your directive.';
       voiceResp.textContent='VYPER: '+greeting; voiceResp.classList.add('show');
