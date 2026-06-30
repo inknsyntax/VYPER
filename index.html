@@ -278,13 +278,13 @@
   /* Edge overlay canvas */
   #edgeCanvas{
     position:absolute;inset:0;width:100%;height:100%;
-    pointer-events:none;z-index:5;display:none;mix-blend-mode:screen;
+    pointer-events:none;z-index:0;display:none;mix-blend-mode:screen;
   }
   #edgeCanvas.on{display:block}
 
   /* ENHANCE modal overlay */
   #enhanceModal{
-    position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;
+    position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;
     background:rgba(10,11,14,.6);backdrop-filter:blur(1px);
   }
   #enhanceModal.open{display:flex}
