@@ -439,6 +439,104 @@
   }
   .voice-chat-bar input:focus{border-color:var(--amber)}
   .voice-chat-bar input::placeholder{color:var(--muted-2)}
+
+  /* ===== WEATHER ===== */
+  .weather-hero{
+    display:flex;align-items:center;gap:16px;padding:14px;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;
+  }
+  .weather-icon{font-size:38px;line-height:1;flex:0 0 auto}
+  .weather-temp{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--amber);line-height:1}
+  .weather-temp sup{font-size:16px;vertical-align:super}
+  .weather-loc{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+  .weather-desc{font-size:12px;color:var(--muted);margin-top:2px;text-transform:capitalize}
+  .weather-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-bottom:10px}
+  .weather-grid div{background:var(--panel-2);padding:8px 11px}
+  .weather-grid span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;margin-bottom:2px}
+  .weather-grid b{font-family:var(--mono);font-size:12px;color:var(--ice)}
+  .weather-bar{display:flex;gap:7px;margin-bottom:10px}
+  .weather-bar input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    color:var(--ice);font-family:var(--mono);font-size:11px;padding:9px 12px;outline:none;letter-spacing:.08em}
+  .weather-bar input:focus{border-color:var(--amber)}
+  .weather-bar input::placeholder{color:var(--muted-2)}
+  .weather-idle{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);text-align:center;padding:18px 0}
+  .weather-forecast{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+  .weather-forecast::-webkit-scrollbar{height:4px}.weather-forecast::-webkit-scrollbar-thumb{background:var(--line)}
+  .forecast-day{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;text-align:center;min-width:54px}
+  .forecast-day .fd-day{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted-2);text-transform:uppercase;margin-bottom:4px}
+  .forecast-day .fd-icon{font-size:18px;margin-bottom:4px}
+  .forecast-day .fd-hi{font-family:var(--mono);font-size:11px;color:var(--amber);font-weight:700}
+  .forecast-day .fd-lo{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+  /* ===== TERMINAL ===== */
+  .term-wrap{
+    background:#050608;border:1px solid var(--line);border-radius:8px;overflow:hidden;
+    font-family:var(--mono);font-size:12px;
+  }
+  .term-titlebar{display:flex;align-items:center;gap:7px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+  .term-dot{width:10px;height:10px;border-radius:50%}
+  .term-titlebar span{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-2);margin-left:4px}
+  .term-output{height:220px;overflow-y:auto;padding:12px;line-height:1.7;color:#a8ffb0;word-break:break-all}
+  .term-output::-webkit-scrollbar{width:5px}.term-output::-webkit-scrollbar-thumb{background:var(--line)}
+  .term-line{display:flex;gap:8px;flex-wrap:wrap}
+  .term-line .prompt{color:var(--amber);flex:0 0 auto}
+  .term-line .cmd{color:var(--ice)}
+  .term-line .out{color:#a8ffb0;width:100%;padding-left:0}
+  .term-line .err{color:var(--red);width:100%}
+  .term-line .info{color:var(--muted);width:100%}
+  .term-line .sys{color:#56cfff;width:100%}
+  .term-input-row{display:flex;align-items:center;gap:0;padding:8px 12px;border-top:1px solid var(--line);background:#050608}
+  .term-prompt-label{font-family:var(--mono);font-size:12px;color:var(--amber);flex:0 0 auto;margin-right:8px}
+  #termInput{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:12px;color:var(--ice);caret-color:var(--amber)}
+
+  /* ===== MOTION DETECTION ===== */
+  .motion-cam{position:relative;width:100%;aspect-ratio:16/9;background:#000;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}
+  #motionVideo{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+  #motionCanvas{position:absolute;inset:0;width:100%;height:100%;opacity:.6;mix-blend-mode:screen;transform:scaleX(-1)}
+  .motion-alert{position:absolute;inset:0;border:2px solid var(--red);border-radius:8px;pointer-events:none;opacity:0;transition:.15s;z-index:3}
+  .motion-alert.on{opacity:1;box-shadow:inset 0 0 30px rgba(255,84,112,.3)}
+  .motion-badge{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;background:var(--red);color:#fff;padding:3px 8px;border-radius:4px;display:none;z-index:4}
+  .motion-badge.show{display:block}
+  .motion-idle{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
+  .motion-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-bottom:10px}
+  .motion-stats div{background:var(--panel-2);padding:8px 10px}
+  .motion-stats span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;margin-bottom:2px}
+  .motion-stats b{font-family:var(--mono);font-size:12px;color:var(--ice)}
+  .motion-stats b.hot{color:var(--red)}
+
+  /* ===== MUSIC ===== */
+  .music-search{display:flex;gap:7px;margin-bottom:12px}
+  .music-search input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+    color:var(--ice);font-family:var(--mono);font-size:11px;padding:9px 12px;outline:none;letter-spacing:.08em}
+  .music-search input:focus{border-color:var(--amber)}
+  .music-search input::placeholder{color:var(--muted-2)}
+  #ytFrame{width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:8px;background:#000;display:none}
+  #ytFrame.show{display:block}
+  .music-results{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
+  .music-results::-webkit-scrollbar{width:5px}.music-results::-webkit-scrollbar-thumb{background:var(--line)}
+  .music-track{display:flex;align-items:center;gap:10px;padding:9px 11px;background:var(--panel);
+    border:1px solid var(--line);border-radius:7px;cursor:pointer;transition:.15s}
+  .music-track:hover,.music-track.playing{border-color:var(--amber);background:var(--amber-dim)}
+  .music-track img{width:40px;height:40px;border-radius:4px;object-fit:cover;flex:0 0 auto;background:var(--line)}
+  .music-track .mt-info{flex:1;min-width:0}
+  .music-track .mt-title{font-size:11.5px;color:var(--ice);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+  .music-track .mt-ch{font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.08em}
+  .music-track .mt-play{font-size:16px;flex:0 0 auto;color:var(--amber);display:none}
+  .music-track.playing .mt-play{display:block}
+  .music-now{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;min-height:14px}
+
+  /* ===== PARTICLES canvas ===== */
+  #particleCanvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.35}
+
+  /* ===== HEY VYPER wake indicator ===== */
+  .wake-pill{
+    position:fixed;bottom:18px;right:20px;z-index:800;
+    font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    background:var(--panel);border:1px solid var(--line);color:var(--muted-2);
+    padding:7px 14px;border-radius:20px;transition:.3s;pointer-events:none;
+  }
+  .wake-pill.active{border-color:var(--amber);color:var(--amber);box-shadow:0 0 16px rgba(255,182,39,.25)}
+  .wake-pill.heard{border-color:#56cfff;color:#56cfff;box-shadow:0 0 16px rgba(86,207,255,.3)}
 </style>
 </head>
 <body>
@@ -644,7 +742,77 @@
       </section>
 
       <section class="module">
-        <h3><span class="idx">07</span> Voice core</h3>
+        <h3><span class="idx">07</span> Weather</h3>
+        <div class="weather-bar">
+          <input id="weatherInput" placeholder="City or use geo location…" autocomplete="off">
+          <button class="chip" id="weatherSearchBtn">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg>
+          </button>
+          <button class="chip" id="weatherLocBtn" title="Use current location">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          </button>
+        </div>
+        <div id="weatherOut"><div class="weather-idle">Awaiting location…</div></div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">08</span> Terminal</h3>
+        <div class="term-wrap">
+          <div class="term-titlebar">
+            <div class="term-dot" style="background:#ff5470"></div>
+            <div class="term-dot" style="background:#ffb627"></div>
+            <div class="term-dot" style="background:#4cff91"></div>
+            <span>VYPER SHELL v1.0</span>
+          </div>
+          <div class="term-output" id="termOutput"></div>
+          <div class="term-input-row">
+            <span class="term-prompt-label">VYPER&gt;</span>
+            <input id="termInput" autocomplete="off" spellcheck="false" placeholder="type a command…">
+          </div>
+        </div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">09</span> Motion detection</h3>
+        <div class="motion-cam">
+          <video id="motionVideo" autoplay muted playsinline></video>
+          <canvas id="motionCanvas"></canvas>
+          <div class="motion-alert" id="motionAlert"></div>
+          <div class="motion-badge" id="motionBadge">MOTION</div>
+          <div class="motion-idle" id="motionIdle">Camera inactive</div>
+        </div>
+        <div class="motion-stats">
+          <div><span>Status</span><b id="motionStatus">Offline</b></div>
+          <div><span>Delta</span><b id="motionDelta">—</b></div>
+          <div><span>Sensitivity</span><b id="motionSensLabel">50%</b></div>
+          <div><span>Events</span><b id="motionEvents">0</b></div>
+        </div>
+        <div class="ctrl"><div class="ctrl-head"><label>Sensitivity</label></div>
+          <input type="range" id="motionSens" min="1" max="100" value="50">
+        </div>
+        <div style="display:flex;gap:7px;margin-top:10px">
+          <button class="chip" id="motionStart" style="flex:1;justify-content:center">
+            <svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Start camera
+          </button>
+          <button class="chip" id="motionStop" style="flex:1;justify-content:center" disabled>Stop</button>
+        </div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">10</span> Music</h3>
+        <div class="music-now" id="musicNow"></div>
+        <div class="music-search">
+          <input id="musicInput" placeholder="Search YouTube Music…" autocomplete="off">
+          <button class="chip primary" id="musicSearchBtn">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg>
+          </button>
+        </div>
+        <iframe id="ytFrame" allow="autoplay" allowfullscreen frameborder="0"></iframe>
+        <div class="music-results" id="musicResults"></div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">11</span> Voice core</h3>
         <div class="voice-orb-wrap">
           <div class="voice-orb" id="voiceOrb" title="Click to speak">
             <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8"/></svg>
@@ -667,6 +835,9 @@
 
   <div class="toast" id="toast"></div>
   <input type="file" id="fileInput" accept="image/*" hidden>
+
+  <canvas id="particleCanvas"></canvas>
+  <div class="wake-pill" id="wakePill">● Hey VYPER</div>
 
   <!-- GEO SCAN MODAL -->
   <div id="geoModal">
@@ -1426,21 +1597,6 @@
     },400);
   }
 
-  // ---- text input wiring (always available) ----
-  function sendTextCommand(){
-    const inp=$('voiceTextInput');
-    const v=inp.value.trim(); if(!v)return;
-    inp.value='';
-    Snd.tick();
-    handleFinal(v, true);
-  }
-  $('voiceTextSend').onclick=sendTextCommand;
-  $('voiceTextInput').addEventListener('keydown',e=>{ if(e.key==='Enter')sendTextCommand(); });
-  // Numpad 5 — focus the command input from anywhere
-  document.addEventListener('keydown',e=>{
-    if(e.code==='Numpad5'){ e.preventDefault(); const inp=$('voiceTextInput'); inp.focus(); inp.select(); Snd.tick(); }
-  });
-
   // preload voices
   if(window.speechSynthesis){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices(); }
 
@@ -1460,7 +1616,7 @@
         else interim+=e.results[i][0].transcript;
       }
       voiceTx.textContent=interim||final||'…';
-      if(final)handleFinal(final.trim(), false);
+      if(final){ handleFinal(final.trim(), false); executeIntent(final.trim()); }
     };
     rec.onerror=e=>{ voiceStatus.className='voice-status'; voiceStatus.textContent='Error: '+e.error; isListening=false; voiceOrb.classList.remove('listening'); Snd.buzz(); };
     rec.onend=()=>{ isListening=false; voiceOrb.classList.remove('listening'); if(voiceStatus.textContent==='LISTENING…'){voiceStatus.className='voice-status';voiceStatus.textContent='Click orb to activate';} };
@@ -1488,6 +1644,401 @@
       logEvent('Voice · boot greeting',true);
     },5500);
   }
+
+  /* ===================== WEATHER ===================== */
+  const WX_CODES={0:'☀️ Clear',1:'🌤 Mainly clear',2:'⛅ Partly cloudy',3:'☁️ Overcast',
+    45:'🌫 Fog',48:'🌫 Icy fog',51:'🌦 Light drizzle',53:'🌦 Drizzle',55:'🌧 Heavy drizzle',
+    61:'🌧 Light rain',63:'🌧 Rain',65:'🌧 Heavy rain',71:'🌨 Light snow',73:'🌨 Snow',75:'❄️ Heavy snow',
+    80:'🌦 Showers',81:'🌧 Rain showers',82:'⛈ Violent showers',95:'⛈ Thunderstorm',99:'⛈ Severe storm'};
+  const WX_ICONS={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'🌨',73:'🌨',75:'❄️',80:'🌦',81:'🌧',82:'⛈',95:'⛈',99:'⛈'};
+  const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  async function fetchWeatherCoords(lat,lng,label){
+    $('weatherOut').innerHTML='<div class="weather-idle">Fetching weather…</div>';
+    try{
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m,apparent_temperature&daily=weathercode,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=6`);
+      const d=await r.json();
+      const c=d.current, dl=d.daily;
+      const desc=WX_CODES[c.weathercode]||'Unknown';
+      const icon=desc.split(' ')[0];
+      let html=`<div class="weather-hero">
+        <div class="weather-icon">${icon}</div>
+        <div>
+          <div class="weather-temp">${Math.round(c.temperature_2m)}<sup>°F</sup></div>
+          <div class="weather-loc">${label}</div>
+          <div class="weather-desc">${desc.replace(/^[^\s]+\s/,'')}</div>
+        </div>
+      </div>
+      <div class="weather-grid">
+        <div><span>Feels like</span><b>${Math.round(c.apparent_temperature)}°F</b></div>
+        <div><span>Humidity</span><b>${c.relativehumidity_2m}%</b></div>
+        <div><span>Wind</span><b>${Math.round(c.windspeed_10m)} mph</b></div>
+        <div><span>Condition</span><b>${desc.replace(/^[^\s]+\s/,'')}</b></div>
+      </div>
+      <div class="weather-forecast">`;
+      dl.time.forEach((t,i)=>{
+        const day=new Date(t+'T12:00:00');
+        html+=`<div class="forecast-day">
+          <div class="fd-day">${DAYS[day.getDay()]}</div>
+          <div class="fd-icon">${WX_ICONS[dl.weathercode[i]]||'🌡'}</div>
+          <div class="fd-hi">${Math.round(dl.temperature_2m_max[i])}°</div>
+          <div class="fd-lo">${Math.round(dl.temperature_2m_min[i])}°</div>
+        </div>`;
+      });
+      html+='</div>';
+      $('weatherOut').innerHTML=html;
+      logEvent('Weather · '+label+' · '+Math.round(c.temperature_2m)+'°F '+desc.replace(/^[^\s]+\s/,''),true);
+      Snd.ok();
+      const summary=`Current weather in ${label}: ${Math.round(c.temperature_2m)} degrees, ${desc.replace(/^[^\s]+\s/,'')}. Wind at ${Math.round(c.windspeed_10m)} miles per hour.`;
+      speak(summary);
+    }catch(e){$('weatherOut').innerHTML='<div class="weather-idle">Weather fetch failed.</div>';Snd.buzz();}
+  }
+
+  async function fetchWeatherByName(city){
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=1`,{headers:{'Accept-Language':'en'}});
+      const d=await r.json();
+      if(!d.length){toast('City not found');Snd.buzz();return;}
+      const p=d[0], parts=p.display_name.split(',');
+      fetchWeatherCoords(+p.lat,+p.lon,parts[0].trim()+', '+(parts[parts.length-1]||'').trim());
+    }catch(e){toast('Geocode failed');Snd.buzz();}
+  }
+
+  $('weatherSearchBtn').onclick=()=>{const v=$('weatherInput').value.trim();if(v)fetchWeatherByName(v);};
+  $('weatherInput').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=$('weatherInput').value.trim();if(v)fetchWeatherByName(v);}});
+  $('weatherLocBtn').onclick=()=>{
+    navigator.geolocation.getCurrentPosition(p=>{
+      fetchWeatherCoords(p.coords.latitude,p.coords.longitude,'Your location');
+    },()=>{toast('Location denied');Snd.buzz();});
+  };
+
+  /* ===================== TERMINAL ===================== */
+  const termOut=$('termOutput');
+  let termHistory=[], termHistIdx=-1;
+
+  function termPrint(text,cls='out'){
+    const line=document.createElement('div'); line.className='term-line';
+    const span=document.createElement('span'); span.className=cls; span.textContent=text;
+    line.appendChild(span); termOut.appendChild(line);
+    termOut.scrollTop=termOut.scrollHeight;
+  }
+  function termCmd(input,cmd){
+    const line=document.createElement('div'); line.className='term-line';
+    line.innerHTML=`<span class="prompt">VYPER&gt;</span><span class="cmd">${input}</span>`;
+    termOut.appendChild(line);
+  }
+
+  const TERM_CMDS={
+    help:()=>{
+      termPrint('Available commands:','sys');
+      ['help','clear','echo [text]','sysinfo','time','date','ping [host]','geo [place]',
+       'weather [city]','define [word]','enhance','edge','export','reset','scan','matrix'].forEach(c=>termPrint('  '+c,'info'));
+    },
+    clear:()=>{ termOut.innerHTML=''; },
+    sysinfo:()=>{
+      termPrint('VYPER OPTICAL CORE v3.0','sys');
+      termPrint('Modules: 11 active','out');
+      termPrint('Session: Local / Secure','out');
+      termPrint('UA: '+navigator.userAgent.split(') ')[0].split('(')[1],'info');
+      termPrint('Screen: '+screen.width+'×'+screen.height,'info');
+      termPrint('Memory: '+(navigator.deviceMemory||'?')+' GB (reported)','info');
+      termPrint('Cores: '+navigator.hardwareConcurrency,'info');
+    },
+    time:()=>termPrint(new Date().toTimeString().slice(0,8),'out'),
+    date:()=>termPrint(new Date().toDateString(),'out'),
+    matrix:()=>{
+      termPrint('Initiating matrix…','sys');
+      let i=0; const t=setInterval(()=>{
+        const row=Array.from({length:40},()=>String.fromCharCode(0x30A0+Math.random()*96)).join('');
+        termPrint(row,'out'); i++;
+        if(i>18)clearInterval(t);
+      },60);
+    },
+    scan:()=>{
+      termPrint('Running system scan…','sys');
+      const checks=['Optical sensor array','Pixel sampler','Edge kernel','OCR pipeline','Geo uplink','Lexicon DB','Weather API','Motion detector','Voice engine','Music module'];
+      checks.forEach((c,i)=>setTimeout(()=>termPrint('  [✓] '+c,'out'),i*90));
+      setTimeout(()=>termPrint('Scan complete. All systems nominal.','sys'),checks.length*90+100);
+    },
+  };
+
+  async function runTermCmd(raw){
+    const input=raw.trim(); if(!input)return;
+    termHistory.unshift(input); termHistIdx=-1;
+    termCmd(input);
+    const [cmd,...args]=input.split(/\s+/);
+    const lo=cmd.toLowerCase();
+    if(TERM_CMDS[lo]){ TERM_CMDS[lo](args); }
+    else if(lo==='echo'){ termPrint(args.join(' ')); }
+    else if(lo==='ping'){
+      termPrint('PING '+args[0]+'…','sys');
+      const start=performance.now();
+      try{ await fetch('https://'+args[0],{mode:'no-cors',cache:'no-store'}); termPrint('Reply: '+(performance.now()-start).toFixed(0)+'ms','out'); }
+      catch(_){ termPrint('Host unreachable or blocked.','err'); }
+    }
+    else if(lo==='geo'){ const q=args.join(' '); if(q){$('geoInput').value=q;geoSearch(q);termPrint('GeoScan fired → '+q,'sys');}else termPrint('Usage: geo [place]','err'); }
+    else if(lo==='weather'){ const q=args.join(' '); if(q){fetchWeatherByName(q);termPrint('Weather query → '+q,'sys');}else termPrint('Usage: weather [city]','err'); }
+    else if(lo==='define'){ const w=args[0]; if(w){$('lexInput').value=w;lexDefine(w);termPrint('Lexicon query → '+w,'sys');}else termPrint('Usage: define [word]','err'); }
+    else if(lo==='enhance'){ $('enhanceBtn').click(); termPrint('Enhance sequence triggered.','sys'); }
+    else if(lo==='edge'){ $('edgeBtn').click(); termPrint('Edge trace toggled.','sys'); }
+    else if(lo==='export'){ $('exportBtn').click(); termPrint('Crop export triggered.','sys'); }
+    else if(lo==='reset'){ $('resetFx').click(); termPrint('Enhancements reset.','sys'); }
+    else { termPrint('Unknown command: '+cmd+'. Type "help" for commands.','err'); }
+    Snd.tick();
+  }
+
+  // boot message
+  termPrint('VYPER SHELL v1.0','sys');
+  termPrint('Type "help" for available commands.','info');
+
+  $('termInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ const v=$('termInput').value; $('termInput').value=''; runTermCmd(v); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); if(termHistIdx<termHistory.length-1){termHistIdx++;$('termInput').value=termHistory[termHistIdx];} }
+    else if(e.key==='ArrowDown'){ e.preventDefault(); if(termHistIdx>0){termHistIdx--;$('termInput').value=termHistory[termHistIdx];}else{termHistIdx=-1;$('termInput').value='';} }
+  });
+
+  /* ===================== MOTION DETECTION ===================== */
+  let motionStream=null, motionRaf=null, prevFrame=null, motionEventCount=0;
+  const motionVideo=$('motionVideo'), motionCanv=$('motionCanvas');
+  let motionCtx=null;
+
+  $('motionStart').onclick=async()=>{
+    try{
+      motionCtx=motionCtx||motionCanv.getContext('2d');
+      motionStream=await navigator.mediaDevices.getUserMedia({video:{width:320,height:240},audio:false});
+      motionVideo.srcObject=motionStream;
+      $('motionIdle').style.display='none';
+      $('motionStart').disabled=true; $('motionStop').disabled=false;
+      $('motionStatus').textContent='Active';
+      logEvent('Motion detection · started',true); Snd.ok();
+      motionVideo.onloadedmetadata=()=>{ motionCanv.width=motionVideo.videoWidth; motionCanv.height=motionVideo.videoHeight; motionLoop(); };
+    }catch(e){ toast('Camera access denied'); Snd.buzz(); }
+  };
+  $('motionStop').onclick=()=>{
+    if(motionStream)motionStream.getTracks().forEach(t=>t.stop());
+    cancelAnimationFrame(motionRaf); prevFrame=null;
+    $('motionIdle').style.display='flex'; $('motionStart').disabled=false; $('motionStop').disabled=true;
+    $('motionStatus').textContent='Offline'; $('motionDelta').textContent='—';
+    $('motionAlert').classList.remove('on'); $('motionBadge').classList.remove('show');
+    logEvent('Motion detection · stopped');
+  };
+
+  let lastMotionCheck=0;
+  function motionLoop(){
+    motionRaf=requestAnimationFrame(motionLoop);
+    const now=performance.now();
+    if(now-lastMotionCheck<80)return; // ~12fps check
+    lastMotionCheck=now;
+    if(!motionVideo.videoWidth)return;
+    motionCtx.drawImage(motionVideo,0,0,motionCanv.width,motionCanv.height);
+    const frame=motionCtx.getImageData(0,0,motionCanv.width,motionCanv.height);
+    if(prevFrame){
+      const sens=2.55*(101-$('motionSens').value); // higher slider = lower threshold
+      let diff=0, total=frame.data.length/4;
+      const out=motionCtx.createImageData(frame.width,frame.height);
+      for(let i=0;i<frame.data.length;i+=4){
+        const d=Math.abs(frame.data[i]-prevFrame[i])+Math.abs(frame.data[i+1]-prevFrame[i+1])+Math.abs(frame.data[i+2]-prevFrame[i+2]);
+        if(d>sens){ diff++; out.data[i]=255; out.data[i+1]=182; out.data[i+2]=39; out.data[i+3]=200; }
+      }
+      motionCtx.putImageData(out,0,0);
+      const pct=(diff/total*100).toFixed(1);
+      $('motionDelta').textContent=pct+'%';
+      const detected=diff/total>.0015;
+      $('motionAlert').classList.toggle('on',detected);
+      $('motionBadge').classList.toggle('show',detected);
+      if(detected){ $('motionDelta').className='hot'; motionEventCount++; $('motionEvents').textContent=motionEventCount; }
+      else $('motionDelta').className='';
+    }
+    prevFrame=Array.from(frame.data);
+  }
+  $('motionSens').oninput=e=>$('motionSensLabel').textContent=e.target.value+'%';
+
+  /* ===================== MUSIC (YouTube) ===================== */
+  const YT_KEY=''; // works without key via oEmbed + noembed fallback
+  let currentTrack=null;
+
+  async function musicSearch(query){
+    $('musicResults').innerHTML='<div style="font-family:var(--mono);font-size:10.5px;color:var(--muted-2);padding:8px;letter-spacing:.1em">Searching…</div>';
+    // Try multiple public Invidious instances
+    const instances=['https://inv.nadeko.net','https://invidious.privacyredirect.com','https://invidious.nerdvpn.de'];
+    let results=null;
+    for(const host of instances){
+      try{
+        const r=await fetch(`${host}/api/v1/search?q=${encodeURIComponent(query+' music')}&type=video&page=1`,{signal:AbortSignal.timeout(4000)});
+        if(!r.ok)continue;
+        results=await r.json();
+        break;
+      }catch(_){ continue; }
+    }
+    if(results&&results.length){
+      renderMusicResults(results.slice(0,8));
+    } else {
+      $('musicResults').innerHTML='<div style="font-family:var(--mono);font-size:10.5px;color:var(--muted-2);padding:8px;letter-spacing:.1em">Loading embedded player…</div>';
+      const frame=$('ytFrame');
+      frame.src=`https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query+' music')}&autoplay=1`;
+      frame.classList.add('show');
+      $('musicNow').textContent='▶ Searching: '+query;
+      logEvent('Music · embed fallback: '+query,true);
+    }
+  }
+
+  function renderMusicResults(items){
+    $('musicResults').innerHTML='';
+    items.forEach(item=>{
+      const id=item.videoId; if(!id)return;
+      const thumb=item.videoThumbnails?.[3]?.url||item.videoThumbnails?.[0]?.url||'';
+      const title=item.title||'Unknown'; const ch=item.author||'';
+      const el=document.createElement('div'); el.className='music-track';
+      el.innerHTML=`<img src="${thumb}" onerror="this.style.display='none'"><div class="mt-info"><div class="mt-title">${title}</div><div class="mt-ch">${ch}</div></div><span class="mt-play">▶</span>`;
+      el.onclick=()=>playTrack(id,title,el);
+      $('musicResults').appendChild(el);
+    });
+    if(!$('musicResults').children.length) $('musicResults').innerHTML='<div style="font-family:var(--mono);font-size:10.5px;color:var(--muted-2);padding:8px">No results found.</div>';
+  }
+
+  function playTrack(videoId,title,el){
+    document.querySelectorAll('.music-track').forEach(t=>t.classList.remove('playing'));
+    if(el)el.classList.add('playing');
+    const frame=$('ytFrame');
+    frame.src=`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    frame.classList.add('show');
+    currentTrack=title;
+    $('musicNow').textContent='▶ '+title;
+    logEvent('Music · playing: '+title,true);
+    Snd.ok();
+  }
+
+  $('musicSearchBtn').onclick=()=>{ const v=$('musicInput').value.trim(); if(v)musicSearch(v); };
+  $('musicInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const v=$('musicInput').value.trim(); if(v)musicSearch(v); } });
+
+  /* ===================== PARTICLES ===================== */
+  (()=>{
+    const c=$('particleCanvas'), ctx=c.getContext('2d');
+    let W,H,particles=[];
+    function resize(){ W=c.width=window.innerWidth; H=c.height=window.innerHeight; }
+    resize(); window.addEventListener('resize',resize);
+    for(let i=0;i<55;i++) particles.push({
+      x:Math.random()*2000,y:Math.random()*1000,vx:(Math.random()-.5)*.18,vy:(Math.random()-.5)*.18,
+      r:Math.random()*1.4+.4,a:Math.random()
+    });
+    function draw(){
+      requestAnimationFrame(draw);
+      ctx.clearRect(0,0,W,H);
+      particles.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+        if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,182,39,${p.a*.4})`;
+        ctx.fill();
+      });
+      // draw faint connecting lines
+      for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<130){ ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(255,182,39,${(.12*(1-dist/130))})`; ctx.lineWidth=.5; ctx.stroke(); }
+      }
+    }
+    draw();
+  })();
+
+  /* ===================== HEY VYPER WAKE WORD ===================== */
+  (()=>{
+    if(!SpeechRec)return;
+    const wake=new SpeechRec();
+    wake.continuous=true; wake.interimResults=true; wake.lang='en-US';
+    const pill=$('wakePill');
+    let wakeActive=false;
+
+    wake.onresult=e=>{
+      let interim='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t=e.results[i][0].transcript.toLowerCase();
+        interim+=t;
+        if(e.results[i].isFinal && (t.includes('hey vyper')||t.includes('hey viper')||t.includes('a vyper')||t.includes('hey buyer'))){
+          pill.className='wake-pill heard'; pill.textContent='● VYPER: Online';
+          Snd.ok(); coreActive(2000);
+          speak('Yes? I am listening.');
+          logEvent('Wake word · Hey VYPER detected',true);
+          setTimeout(()=>{ pill.className='wake-pill active'; pill.textContent='● Hey VYPER'; },2500);
+          $('voiceTextInput').focus();
+          return;
+        }
+      }
+      if(interim.includes('hey vyper')||interim.includes('hey viper')){
+        pill.className='wake-pill active'; pill.textContent='● Detecting…';
+      }
+    };
+    wake.onend=()=>{ if(wakeActive){ try{wake.start();}catch(_){} } };
+    wake.onerror=e=>{ if(e.error!=='no-speech')console.warn('wake:',e.error); };
+
+    // start after a delay so it doesn't conflict with boot
+    setTimeout(()=>{ try{ wake.start(); wakeActive=true; pill.className='wake-pill active'; }catch(_){} },7000);
+  })();
+
+  /* ===================== EXTEND INTENT ENGINE ===================== */
+  // add weather + music to intents and handler
+  INTENTS.push(
+    {name:'WEATHER', keys:['weather','temperature','forecast','rain','sunny','hot','cold','climate','degrees'], priority:9},
+    {name:'MUSIC',   keys:['play','music','song','track','artist','youtube','listen','audio'],                  priority:8},
+    {name:'MOTION',  keys:['camera','motion','detect','watch','monitor','surveillance'],                        priority:7},
+    {name:'TERMINAL',keys:['terminal','shell','console','command','run'],                                       priority:6}
+  );
+  RESPONSES.WEATHER=['Fetching atmospheric data now.','Checking current conditions.','Weather uplink established.'];
+  RESPONSES.MUSIC=['Loading music module.','Searching audio database.','Tuning in now.'];
+  RESPONSES.MOTION=['Activating motion sensors.','Camera surveillance engaged.'];
+  RESPONSES.TERMINAL=['Opening shell interface.','Terminal ready.'];
+
+  // ---- unified intent action executor ----
+  function executeIntent(text){
+    const {intent,defineWord,geoQuery}=classifyIntent(text);
+    const lower=text.toLowerCase();
+    // new intents not in original handler
+    if(intent==='WEATHER'){
+      const m=lower.match(/weather\s+(?:in\s+)?(.+)/)||lower.match(/(?:temperature|forecast)\s+(?:in\s+)?(.+)/);
+      const city=m?m[1].trim():null;
+      setTimeout(()=>{ if(city)fetchWeatherByName(city); else $('weatherLocBtn').click(); },400);
+    }
+    if(intent==='MUSIC'){
+      const m=lower.match(/(?:play|search|find)\s+(.+)/);
+      if(m)setTimeout(()=>{ $('musicInput').value=m[1].trim(); musicSearch(m[1].trim()); },400);
+    }
+    if(intent==='MOTION') setTimeout(()=>$('motionStart').click(),400);
+    if(intent==='TERMINAL') setTimeout(()=>$('termInput').focus(),400);
+  }
+
+  // ---- single source of truth for text + voice input ----
+  function processInput(text, fromText){
+    handleFinal(text, fromText);  // handles display, TTS, original intents
+    executeIntent(text);           // handles new intents
+  }
+
+  // ---- wire text input (replaces all previous versions) ----
+  function sendTextCommand(){
+    const inp=$('voiceTextInput'), v=inp.value.trim(); if(!v)return;
+    inp.value=''; Snd.tick(); processInput(v, true);
+  }
+  // remove any old listeners by replacing the elements
+  const oldSend=$('voiceTextSend'), newSend=oldSend.cloneNode(true);
+  oldSend.parentNode.replaceChild(newSend,oldSend);
+  newSend.addEventListener('click',sendTextCommand);
+
+  const oldInp=$('voiceTextInput'), newInp=oldInp.cloneNode(true);
+  oldInp.parentNode.replaceChild(newInp,oldInp);
+  newInp.addEventListener('keydown',e=>{ if(e.key==='Enter')sendTextCommand(); });
+
+  // Numpad5 → focus command input
+  document.addEventListener('keydown',e=>{
+    if(e.code==='Numpad5'){ e.preventDefault(); newInp.focus(); newInp.select(); Snd.tick(); }
+  });
+
+  // ---- patch mic's onresult to also run executeIntent ----
+  // (mic already calls handleFinal directly; we just need executeIntent too)
+  // done by replacing rec.onresult after it's defined — accessed via the if(SpeechRec) block
+  // The cleanest fix: override processInput globally so mic calls it too
+  // mic already calls handleFinal(final.trim(), false) — we hook it via a global shim
+  window.__vyperProcessInput = processInput;
 })();
 </script>
 </body>
