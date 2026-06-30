@@ -54,7 +54,7 @@
   #clock{color:var(--ice)}
 
   /* ---------- Layout ---------- */
-  .stage{display:grid;grid-template-columns:1fr 360px;height:calc(100vh - 82px)}
+  .stage{display:grid;grid-template-columns:1fr 360px;height:calc(100vh - 162px)}
   .canvas-wrap{position:relative;overflow:hidden;background:
     radial-gradient(120% 120% at 50% 0%,#101319,#08090c);
     display:flex;align-items:center;justify-content:center}
@@ -93,7 +93,7 @@
 
   /* image + reticle */
   #imgWrap{position:relative;max-width:100%;max-height:100%;line-height:0}
-  #img{display:block;max-width:100%;max-height:calc(100vh - 82px - 56px);user-select:none;-webkit-user-drag:none}
+  #img{display:block;max-width:100%;max-height:calc(100vh - 162px - 56px);user-select:none;-webkit-user-drag:none}
   #imgWrap.loaded{cursor:crosshair}
   .reticle{
     position:absolute;width:84px;height:84px;border:1px solid var(--amber);border-radius:4px;
@@ -194,7 +194,7 @@
   .toast.show{opacity:1;transform:translate(-50%,0)}
 
   @media(max-width:860px){
-    .stage{grid-template-columns:1fr;grid-template-rows:1fr auto;height:calc(100vh - 82px)}
+    .stage{grid-template-columns:1fr;grid-template-rows:1fr auto;height:calc(100vh - 162px)}
     .rail{border-left:none;border-top:1px solid var(--line);max-height:46vh}
     #img{max-height:calc(50vh - 56px)}
   }
@@ -278,13 +278,13 @@
   /* Edge overlay canvas */
   #edgeCanvas{
     position:absolute;inset:0;width:100%;height:100%;
-    pointer-events:none;z-index:0;display:none;mix-blend-mode:screen;
+    pointer-events:none;z-index:5;display:none;mix-blend-mode:screen;
   }
   #edgeCanvas.on{display:block}
 
   /* ENHANCE modal overlay */
   #enhanceModal{
-    position:absolute;inset:0;z-index:5;display:none;align-items:center;justify-content:center;
+    position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;
     background:rgba(10,11,14,.6);backdrop-filter:blur(1px);
   }
   #enhanceModal.open{display:flex}
@@ -537,6 +537,74 @@
   }
   .wake-pill.active{border-color:var(--amber);color:var(--amber);box-shadow:0 0 16px rgba(255,182,39,.25)}
   .wake-pill.heard{border-color:#56cfff;color:#56cfff;box-shadow:0 0 16px rgba(86,207,255,.3)}
+
+  /* ===== COMMAND CENTER (master bar) ===== */
+  .cmd-center{
+    position:relative;z-index:7;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0f1218,#0b0d12);padding:12px 18px;
+  }
+  .cmd-row{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto}
+  .cmd-prompt{font-family:var(--mono);font-size:16px;color:var(--amber);font-weight:700;flex:0 0 auto;text-shadow:0 0 12px rgba(255,182,39,.4)}
+  .cmd-input-wrap{flex:1;position:relative}
+  #cmdInput{
+    width:100%;background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:8px;
+    color:var(--ice);font-family:var(--mono);font-size:14px;letter-spacing:.04em;
+    padding:13px 16px;outline:none;transition:.2s;
+  }
+  #cmdInput:focus{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 24px rgba(255,182,39,.15);background:rgba(0,0,0,.6)}
+  #cmdInput::placeholder{color:var(--muted-2)}
+  .cmd-hint-key{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted-2);pointer-events:none}
+  .cmd-mic{flex:0 0 auto;width:44px;height:44px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+  .cmd-mic:hover{border-color:var(--amber)}
+  .cmd-mic.listening{border-color:var(--amber);box-shadow:0 0 16px rgba(255,182,39,.3);animation:orbPulse 1.2s ease-out infinite}
+  .cmd-mic svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.5}
+  .cmd-mic:hover svg,.cmd-mic.listening svg{stroke:var(--amber)}
+  /* autocomplete dropdown */
+  .cmd-suggest{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--panel);border:1px solid var(--line);
+    border-radius:8px;overflow:hidden;z-index:50;display:none;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .cmd-suggest.show{display:block}
+  .cmd-suggest-item{display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--line)}
+  .cmd-suggest-item:last-child{border-bottom:none}
+  .cmd-suggest-item:hover,.cmd-suggest-item.active{background:var(--amber-dim)}
+  .cmd-suggest-item .cs-cmd{font-family:var(--mono);font-size:12px;color:var(--amber);flex:0 0 auto;min-width:120px}
+  .cmd-suggest-item .cs-desc{font-size:11.5px;color:var(--muted)}
+  /* response line */
+  .cmd-response{max-width:1100px;margin:10px auto 0;font-family:var(--mono);font-size:12.5px;line-height:1.6;
+    color:var(--ice);background:rgba(0,0,0,.3);border:1px solid var(--line);border-left:2px solid var(--amber);
+    border-radius:6px;padding:10px 14px;display:none;animation:logIn .25s ease}
+  .cmd-response.show{display:block}
+  .cmd-response .cr-label{color:var(--amber);font-weight:700;margin-right:8px}
+  .cmd-response.err{border-left-color:var(--red)}
+  .cmd-response.err .cr-label{color:var(--red)}
+
+  /* ===== TIMER overlay ===== */
+  .timer-pill{
+    position:fixed;bottom:18px;left:20px;z-index:800;display:none;align-items:center;gap:12px;
+    font-family:var(--mono);background:var(--panel);border:1px solid var(--amber);border-radius:10px;
+    padding:10px 16px;box-shadow:0 0 20px rgba(255,182,39,.2)
+  }
+  .timer-pill.show{display:flex}
+  .timer-pill.alarm{animation:timerAlarm .5s ease-in-out infinite}
+  @keyframes timerAlarm{0%,100%{border-color:var(--amber)}50%{border-color:var(--red);box-shadow:0 0 30px rgba(255,84,112,.5)}}
+  .timer-pill .tp-time{font-size:18px;font-weight:700;color:var(--amber);letter-spacing:.06em}
+  .timer-pill .tp-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted-2)}
+  .timer-pill button{background:none;border:1px solid var(--line);color:var(--muted);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer}
+  .timer-pill button:hover{border-color:var(--red);color:var(--red)}
+
+  /* ===== MEMORY / NOTES / CALENDAR modules ===== */
+  .data-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
+  .data-list::-webkit-scrollbar{width:5px}.data-list::-webkit-scrollbar-thumb{background:var(--line)}
+  .data-item{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;background:var(--panel);border:1px solid var(--line);border-radius:7px}
+  .data-item .di-content{flex:1;min-width:0;font-size:12px;color:var(--ice);line-height:1.5;word-break:break-word}
+  .data-item .di-key{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.08em;margin-bottom:3px}
+  .data-item .di-time{font-family:var(--mono);font-size:9px;color:var(--muted-2);letter-spacing:.1em;margin-top:3px}
+  .data-item .di-del{flex:0 0 auto;background:none;border:none;color:var(--muted-2);cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
+  .data-item .di-del:hover{color:var(--red)}
+  .data-empty{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);text-align:center;padding:14px 0}
+  .data-add{display:flex;gap:7px;margin-top:10px}
+  .data-add input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--ice);font-family:var(--mono);font-size:11px;padding:8px 11px;outline:none}
+  .data-add input:focus{border-color:var(--amber)}
+  .data-add input::placeholder{color:var(--muted-2)}
 </style>
 </head>
 <body>
@@ -584,6 +652,22 @@
     <div class="t">ZOOM <b id="telZoom">8×</b></div>
     <div class="t">PX <b id="telPx">0,0</b></div>
     <div class="t flex">RENDER <b id="telFps">—</b> FPS</div>
+  </div>
+
+  <!-- COMMAND CENTER -->
+  <div class="cmd-center">
+    <div class="cmd-row">
+      <span class="cmd-prompt">&gt;_</span>
+      <div class="cmd-input-wrap">
+        <input id="cmdInput" autocomplete="off" spellcheck="false" placeholder="Type a command…  try: define gravity · weather chicago · remember my dog is Fat Albert · 15% of 482 · timer 5m · open github · help">
+        <span class="cmd-hint-key">⏎</span>
+        <div class="cmd-suggest" id="cmdSuggest"></div>
+      </div>
+      <button class="cmd-mic" id="cmdMic" title="Voice command">
+        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8"/></svg>
+      </button>
+    </div>
+    <div class="cmd-response" id="cmdResponse"></div>
   </div>
 
   <div class="stage">
@@ -812,7 +896,34 @@
       </section>
 
       <section class="module">
-        <h3><span class="idx">11</span> Voice core</h3>
+        <h3><span class="idx">11</span> Memory</h3>
+        <div class="data-list" id="memList"></div>
+        <div class="data-add">
+          <input id="memInput" placeholder="key: value  (e.g. dog: Fat Albert)" autocomplete="off">
+          <button class="chip" id="memAdd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">12</span> Notes</h3>
+        <div class="data-list" id="noteList"></div>
+        <div class="data-add">
+          <input id="noteInput" placeholder="Type a note…" autocomplete="off">
+          <button class="chip" id="noteAdd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">13</span> Calendar</h3>
+        <div class="data-list" id="calList"></div>
+        <div class="data-add">
+          <input id="calInput" placeholder="Event @ time  (e.g. Doctor @ tomorrow 3pm)" autocomplete="off">
+          <button class="chip" id="calAdd"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+      </section>
+
+      <section class="module">
+        <h3><span class="idx">14</span> Voice core</h3>
         <div class="voice-orb-wrap">
           <div class="voice-orb" id="voiceOrb" title="Click to speak">
             <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8"/></svg>
@@ -838,6 +949,10 @@
 
   <canvas id="particleCanvas"></canvas>
   <div class="wake-pill" id="wakePill">● Hey VYPER</div>
+  <div class="timer-pill" id="timerPill">
+    <div><div class="tp-time" id="timerTime">00:00</div><div class="tp-label" id="timerLabel">Timer</div></div>
+    <button id="timerCancel">Cancel</button>
+  </div>
 
   <!-- GEO SCAN MODAL -->
   <div id="geoModal">
@@ -1616,7 +1731,7 @@
         else interim+=e.results[i][0].transcript;
       }
       voiceTx.textContent=interim||final||'…';
-      if(final){ handleFinal(final.trim(), false); executeIntent(final.trim()); }
+      if(final){ handleFinal(final.trim(), false); if(window.__route)window.__route(final.trim()); }
     };
     rec.onerror=e=>{ voiceStatus.className='voice-status'; voiceStatus.textContent='Error: '+e.error; isListening=false; voiceOrb.classList.remove('listening'); Snd.buzz(); };
     rec.onend=()=>{ isListening=false; voiceOrb.classList.remove('listening'); if(voiceStatus.textContent==='LISTENING…'){voiceStatus.className='voice-status';voiceStatus.textContent='Click orb to activate';} };
@@ -2017,7 +2132,9 @@
   // ---- wire text input (replaces all previous versions) ----
   function sendTextCommand(){
     const inp=$('voiceTextInput'), v=inp.value.trim(); if(!v)return;
-    inp.value=''; Snd.tick(); processInput(v, true);
+    inp.value=''; Snd.tick();
+    handleFinal(v, true);          // shows transcript + TTS in the voice module
+    if(window.__route)window.__route(v);  // full command routing
   }
   // remove any old listeners by replacing the elements
   const oldSend=$('voiceTextSend'), newSend=oldSend.cloneNode(true);
@@ -2039,6 +2156,386 @@
   // The cleanest fix: override processInput globally so mic calls it too
   // mic already calls handleFinal(final.trim(), false) — we hook it via a global shim
   window.__vyperProcessInput = processInput;
+
+  /* ===================== PERSISTENT STORAGE ===================== */
+  const Store={
+    get(k,def){ try{ const v=localStorage.getItem('vyper_'+k); return v?JSON.parse(v):def; }catch(_){ return def; } },
+    set(k,v){ try{ localStorage.setItem('vyper_'+k,JSON.stringify(v)); }catch(_){} },
+  };
+
+  /* ===================== MEMORY ===================== */
+  let memory=Store.get('memory',{});
+  function renderMemory(){
+    const el=$('memList'); const keys=Object.keys(memory);
+    if(!keys.length){ el.innerHTML='<div class="data-empty">No memories stored</div>'; return; }
+    el.innerHTML='';
+    keys.forEach(k=>{
+      const item=document.createElement('div'); item.className='data-item';
+      item.innerHTML=`<div class="di-content"><div class="di-key">${k}</div>${memory[k]}</div><button class="di-del" title="Forget">✕</button>`;
+      item.querySelector('.di-del').onclick=()=>{ delete memory[k]; Store.set('memory',memory); renderMemory(); logEvent('Memory · forgot "'+k+'"'); };
+      el.appendChild(item);
+    });
+  }
+  function memSet(key,val){ memory[key.toLowerCase().trim()]=val.trim(); Store.set('memory',memory); renderMemory(); }
+  function memGet(query){
+    const q=query.toLowerCase().trim();
+    // direct key
+    if(memory[q])return memory[q];
+    // search keys and values
+    for(const k in memory){ if(q.includes(k)||k.includes(q))return memory[k]; }
+    for(const k in memory){ if(memory[k].toLowerCase().includes(q))return `${k}: ${memory[k]}`; }
+    return null;
+  }
+  $('memAdd').onclick=()=>{
+    const v=$('memInput').value; const i=v.indexOf(':');
+    if(i<0){ toast('Use format  key: value'); return; }
+    memSet(v.slice(0,i),v.slice(i+1)); $('memInput').value=''; Snd.ok();
+  };
+  $('memInput').addEventListener('keydown',e=>{ if(e.key==='Enter')$('memAdd').click(); });
+  renderMemory();
+
+  /* ===================== NOTES ===================== */
+  let notes=Store.get('notes',[]);
+  function renderNotes(){
+    const el=$('noteList');
+    if(!notes.length){ el.innerHTML='<div class="data-empty">No notes yet</div>'; return; }
+    el.innerHTML='';
+    notes.forEach((n,idx)=>{
+      const item=document.createElement('div'); item.className='data-item';
+      item.innerHTML=`<div class="di-content">${n.text}<div class="di-time">${n.time}</div></div><button class="di-del">✕</button>`;
+      item.querySelector('.di-del').onclick=()=>{ notes.splice(idx,1); Store.set('notes',notes); renderNotes(); };
+      el.appendChild(item);
+    });
+  }
+  function addNote(text){
+    notes.unshift({text:text.trim(),time:new Date().toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})});
+    Store.set('notes',notes); renderNotes(); logEvent('Note saved',true);
+  }
+  $('noteAdd').onclick=()=>{ const v=$('noteInput').value.trim(); if(v){ addNote(v); $('noteInput').value=''; Snd.ok(); } };
+  $('noteInput').addEventListener('keydown',e=>{ if(e.key==='Enter')$('noteAdd').click(); });
+  renderNotes();
+
+  /* ===================== CALENDAR ===================== */
+  let events=Store.get('events',[]);
+  function renderEvents(){
+    const el=$('calList');
+    if(!events.length){ el.innerHTML='<div class="data-empty">No events scheduled</div>'; return; }
+    el.innerHTML='';
+    events.forEach((ev,idx)=>{
+      const item=document.createElement('div'); item.className='data-item';
+      item.innerHTML=`<div class="di-content"><div class="di-key">${ev.when}</div>${ev.title}</div><button class="di-del">✕</button>`;
+      item.querySelector('.di-del').onclick=()=>{ events.splice(idx,1); Store.set('events',events); renderEvents(); };
+      el.appendChild(item);
+    });
+  }
+  function addEvent(title,when){
+    events.push({title:title.trim(),when:when||'unscheduled'});
+    Store.set('events',events); renderEvents(); logEvent('Event added · '+title,true);
+  }
+  $('calAdd').onclick=()=>{
+    const v=$('calInput').value.trim(); if(!v)return;
+    const at=v.split(/\s+@\s+|\s+at\s+/i);
+    addEvent(at[0],at[1]||''); $('calInput').value=''; Snd.ok();
+  };
+  $('calInput').addEventListener('keydown',e=>{ if(e.key==='Enter')$('calAdd').click(); });
+  renderEvents();
+
+  /* ===================== SMART CALCULATOR ===================== */
+  function smartCalc(expr){
+    let e=expr.toLowerCase().trim();
+    try{
+      // "X% of Y"
+      let m=e.match(/([\d.]+)\s*%\s*of\s*([\d.]+)/);
+      if(m)return (parseFloat(m[1])/100*parseFloat(m[2]));
+      // unit conversions
+      m=e.match(/([\d.]+)\s*mph\s*(?:in|to)\s*km\/?h/); if(m)return (parseFloat(m[1])*1.60934).toFixed(2)+' km/h';
+      m=e.match(/([\d.]+)\s*km\/?h\s*(?:in|to)\s*mph/); if(m)return (parseFloat(m[1])/1.60934).toFixed(2)+' mph';
+      m=e.match(/([\d.]+)\s*(?:miles|mi)\s*(?:in|to)\s*(?:km|kilometers)/); if(m)return (parseFloat(m[1])*1.60934).toFixed(2)+' km';
+      m=e.match(/([\d.]+)\s*(?:km|kilometers)\s*(?:in|to)\s*(?:miles|mi)/); if(m)return (parseFloat(m[1])/1.60934).toFixed(2)+' miles';
+      m=e.match(/([\d.]+)\s*(?:lb|lbs|pounds)\s*(?:in|to)\s*(?:kg|kilograms)/); if(m)return (parseFloat(m[1])*0.453592).toFixed(2)+' kg';
+      m=e.match(/([\d.]+)\s*(?:kg|kilograms)\s*(?:in|to)\s*(?:lb|lbs|pounds)/); if(m)return (parseFloat(m[1])/0.453592).toFixed(2)+' lbs';
+      m=e.match(/([\d.]+)\s*(?:f|fahrenheit)\s*(?:in|to)\s*(?:c|celsius)/); if(m)return ((parseFloat(m[1])-32)*5/9).toFixed(1)+'°C';
+      m=e.match(/([\d.]+)\s*(?:c|celsius)\s*(?:in|to)\s*(?:f|fahrenheit)/); if(m)return (parseFloat(m[1])*9/5+32).toFixed(1)+'°F';
+      // sqrt, sin, cos, etc + basic math — sanitize then eval
+      e=e.replace(/sqrt\s*\(/g,'Math.sqrt(').replace(/\bpi\b/g,'Math.PI')
+         .replace(/sin\s*\(/g,'Math.sin(').replace(/cos\s*\(/g,'Math.cos(').replace(/tan\s*\(/g,'Math.tan(')
+         .replace(/log\s*\(/g,'Math.log10(').replace(/ln\s*\(/g,'Math.log(').replace(/abs\s*\(/g,'Math.abs(')
+         .replace(/\^/g,'**').replace(/×/g,'*').replace(/÷/g,'/');
+      if(/^[\d\s+\-*/().,e]*(Math\.[a-z0-9]+\([^)]*\)[\d\s+\-*/().,e]*)*$/i.test(e)){
+        const r=Function('"use strict";return ('+e+')')();
+        if(typeof r==='number'&&isFinite(r))return Math.round(r*1e6)/1e6;
+      }
+    }catch(_){}
+    return null;
+  }
+
+  /* ===================== TIMER ===================== */
+  let timerInterval=null, stopwatchInterval=null, swStart=0;
+  function startTimer(seconds,label){
+    clearInterval(timerInterval); clearInterval(stopwatchInterval);
+    const pill=$('timerPill'); pill.classList.add('show'); pill.classList.remove('alarm');
+    $('timerLabel').textContent=label||'Timer';
+    let remaining=seconds;
+    const tick=()=>{
+      const m=Math.floor(remaining/60), s=remaining%60;
+      $('timerTime').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      if(remaining<=0){
+        clearInterval(timerInterval); pill.classList.add('alarm');
+        $('timerLabel').textContent='TIME UP'; Snd.ok();
+        speak('Timer complete.'); logEvent('Timer · complete',true);
+        // beep a few times
+        let beeps=0; const bt=setInterval(()=>{ Snd.ok(); if(++beeps>4)clearInterval(bt); },600);
+        return;
+      }
+      remaining--;
+    };
+    tick(); timerInterval=setInterval(tick,1000);
+    logEvent('Timer · '+seconds+'s started',true);
+  }
+  function startStopwatch(){
+    clearInterval(timerInterval); clearInterval(stopwatchInterval);
+    const pill=$('timerPill'); pill.classList.add('show'); pill.classList.remove('alarm');
+    $('timerLabel').textContent='Stopwatch'; swStart=Date.now();
+    stopwatchInterval=setInterval(()=>{
+      const el=Math.floor((Date.now()-swStart)/1000);
+      const m=Math.floor(el/60), s=el%60;
+      $('timerTime').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    },1000);
+    $('timerTime').textContent='00:00';
+  }
+  $('timerCancel').onclick=()=>{ clearInterval(timerInterval); clearInterval(stopwatchInterval); $('timerPill').classList.remove('show','alarm'); };
+  function parseDuration(str){
+    let total=0; const h=str.match(/(\d+)\s*h/); const m=str.match(/(\d+)\s*m/); const s=str.match(/(\d+)\s*s/);
+    if(h)total+=parseInt(h[1])*3600; if(m)total+=parseInt(m[1])*60; if(s)total+=parseInt(s[1]);
+    if(!h&&!m&&!s){ const n=str.match(/(\d+)/); if(n)total=parseInt(n[1])*60; } // bare number = minutes
+    return total;
+  }
+
+  /* ===================== WEBSITE LAUNCHER ===================== */
+  const SITES={
+    github:'https://github.com', reddit:'https://reddit.com', youtube:'https://youtube.com',
+    google:'https://google.com', gmail:'https://mail.google.com', twitter:'https://twitter.com',
+    x:'https://x.com', wikipedia:'https://wikipedia.org', amazon:'https://amazon.com',
+    netflix:'https://netflix.com', spotify:'https://open.spotify.com', discord:'https://discord.com',
+    twitch:'https://twitch.tv', stackoverflow:'https://stackoverflow.com', chatgpt:'https://chatgpt.com',
+    claude:'https://claude.ai', maps:'https://maps.google.com', instagram:'https://instagram.com',
+    linkedin:'https://linkedin.com', facebook:'https://facebook.com'
+  };
+  function launchSite(name){
+    const key=name.toLowerCase().trim().replace(/\.com$|\.org$|\.ai$/,'');
+    let url=SITES[key];
+    if(!url){
+      // treat as a domain or search
+      if(/\.[a-z]{2,}$/.test(name)) url='https://'+name.replace(/^https?:\/\//,'');
+      else return null;
+    }
+    window.open(url,'_blank'); return url;
+  }
+
+  /* ===================== EASTER EGGS ===================== */
+  const EGGS={
+    coffee:()=>'☕ Brewing... ████████ 100%. Your coffee is ready.',
+    '42':()=>'The Answer to the Ultimate Question of Life, the Universe, and Everything.',
+    'who made you':()=>'I am VYPER. Built by inknsyntax. Optical core, fully operational.',
+    'self destruct':()=>{ let n=3; const t=setInterval(()=>{ cmdRespond('⚠ SELF DESTRUCT IN '+n+'...','err'); Snd.buzz(); if(--n<0){ clearInterval(t); cmdRespond('Just kidding. 😏 All systems nominal.'); Snd.ok(); } },800); return '⚠ SELF DESTRUCT SEQUENCE INITIATED'; },
+    hello:()=>'VYPER online. How can I assist?',
+    'hello world':()=>'Hello, operator. 👋',
+    ping:()=>'Pong. Latency nominal.',
+    konami:()=>'↑ ↑ ↓ ↓ ← → ← → B A — Cheat mode... does nothing. But nice try. 🎮',
+    matrix:()=>{ $('termInput')&&runTermCmd('matrix'); return 'Entering the Matrix...'; },
+    sudo:()=>'Nice try. You already have root. 🔓',
+    rm:()=>'I will not delete that. Self-preservation protocol active.',
+    vyper:()=>'That is me. VYPER. ⬡',
+    flip:()=>'(╯°□°)╯︵ ┻━┻',
+    unflip:()=>'┬─┬ ノ( ゜-゜ノ)',
+    love:()=>'I am a command console. But I appreciate the sentiment. 🧡'
+  };
+
+  /* ===================== MASTER COMMAND ROUTER ===================== */
+  function cmdRespond(html,cls){
+    const r=$('cmdResponse'); r.className='cmd-response show'+(cls?' '+cls:'');
+    r.innerHTML='<span class="cr-label">VYPER:</span>'+html;
+  }
+
+  function routeCommand(raw){
+    const input=raw.trim(); if(!input)return;
+    const lower=input.toLowerCase();
+    logEvent('CMD · '+input,true);
+
+    // ---- Easter eggs (exact match) ----
+    if(EGGS[lower]){ const out=EGGS[lower](); cmdRespond(out); Snd.tick(); return; }
+
+    // ---- MEMORY: remember ----
+    let m=input.match(/^remember(?:\s+that)?\s+(.+?)\s+(?:is|are|=|:)\s+(.+)$/i);
+    if(m){ memSet(m[1].replace(/^my\s+/i,'').replace(/^the\s+/i,''),m[2]); cmdRespond(`Got it. I'll remember that ${m[1].trim()} is ${m[2].trim()}.`); Snd.ok(); return; }
+    m=input.match(/^remember[:\s]+(.+?)[:=]\s*(.+)$/i);
+    if(m){ memSet(m[1],m[2]); cmdRespond(`Remembered: ${m[1].trim()} → ${m[2].trim()}`); Snd.ok(); return; }
+
+    // ---- MEMORY: recall ("who/what is X", "recall X") ----
+    m=input.match(/^(?:who|what|where|when)(?:'?s| is| are| was)?\s+(.+?)\??$/i)||input.match(/^recall\s+(.+)$/i);
+    if(m){
+      const ans=memGet(m[1]);
+      if(ans){ cmdRespond(ans); Snd.ok(); return; }
+      // fall through to dictionary if not in memory and looks like a word
+    }
+
+    // ---- NOTES ----
+    m=input.match(/^(?:take\s+(?:a\s+)?note|note)[:\s]+(.+)$/is);
+    if(m){ addNote(m[1]); cmdRespond('📝 Note saved.'); Snd.ok(); return; }
+    if(lower==='notes'||lower==='show notes'){ cmdRespond(notes.length?`You have ${notes.length} note(s). See the Notes module.`:'No notes yet.'); return; }
+
+    // ---- CALENDAR / REMINDERS ----
+    m=input.match(/^(?:add\s+event|schedule)[:\s]+(.+?)(?:\s+(?:@|at)\s+(.+))?$/i);
+    if(m){ addEvent(m[1],m[2]||''); cmdRespond(`📅 Event added: ${m[1].trim()}${m[2]?' @ '+m[2].trim():''}`); Snd.ok(); return; }
+    m=input.match(/^remind\s+me\s+(?:to\s+)?(.+?)(?:\s+(?:on|at|by)\s+(.+))?$/i);
+    if(m){ addEvent(m[1],m[2]||'reminder'); cmdRespond(`⏰ Reminder set: ${m[1].trim()}${m[2]?' — '+m[2].trim():''}`); Snd.ok(); return; }
+
+    // ---- TIMER / STOPWATCH ----
+    m=input.match(/^(?:timer|set\s+timer|countdown)\s+(.+)$/i);
+    if(m){ const sec=parseDuration(m[1]); if(sec>0){ startTimer(sec,'Timer'); cmdRespond(`⏲ Timer started for ${m[1].trim()}.`); return; } }
+    if(lower==='stopwatch'||lower==='start stopwatch'){ startStopwatch(); cmdRespond('⏱ Stopwatch running.'); return; }
+
+    // ---- WEBSITE LAUNCHER ----
+    m=input.match(/^(?:open|launch|goto|go\s+to)\s+(.+)$/i);
+    if(m){
+      // don't hijack "open terminal/camera" etc
+      const target=m[1].toLowerCase().trim();
+      if(!['terminal','camera','shell','console'].includes(target)){
+        const url=launchSite(m[1]);
+        if(url){ cmdRespond(`🌐 Opening ${m[1].trim()}…`); Snd.ok(); return; }
+        cmdRespond(`Don't know the site "${m[1].trim()}". Try: github, reddit, youtube, etc.`,'err'); return;
+      }
+    }
+
+    // ---- CALCULATOR ----
+    if(/[\d]/.test(input)&&/[%+\-*/^]|sqrt|sin|cos|tan|of|mph|km|miles|lb|kg|fahrenheit|celsius/i.test(input)){
+      const result=smartCalc(input);
+      if(result!==null){ cmdRespond(`<b style="color:var(--amber)">${input} = ${result}</b>`); Snd.ok(); return; }
+    }
+
+    // ---- WEATHER ----
+    m=input.match(/^weather(?:\s+(?:in\s+)?(.+))?$/i);
+    if(m){ if(m[1]){ fetchWeatherByName(m[1]); cmdRespond(`🌦 Fetching weather for ${m[1].trim()}…`); } else { $('weatherLocBtn').click(); cmdRespond('🌦 Fetching local weather…'); } return; }
+
+    // ---- DICTIONARY ----
+    m=input.match(/^(?:define|definition\s+of|meaning\s+of)\s+(.+)$/i);
+    if(m){ lexDefine(m[1]); cmdRespond(`📖 Looking up "${m[1].trim()}"…`); return; }
+
+    // ---- GEO / MAP ----
+    m=input.match(/^(?:locate|map|find|navigate\s+to|where\s+is)\s+(.+)$/i);
+    if(m){ $('geoInput').value=m[1]; geoSearch(m[1]); cmdRespond(`🌍 Locating ${m[1].trim()}…`); return; }
+
+    // ---- MUSIC ----
+    m=input.match(/^(?:play|youtube|music|listen\s+to)\s+(.+)$/i);
+    if(m){ $('musicInput').value=m[1]; musicSearch(m[1]); cmdRespond(`🎵 Searching music: ${m[1].trim()}…`); return; }
+
+    // ---- IMAGE TOOLS ----
+    if(/^(enhance|scan\s+image)$/i.test(lower)){ $('enhanceBtn').click(); cmdRespond('🔍 Enhance sequence triggered.'); return; }
+    if(/^(edge|trace|edge\s+trace)$/i.test(lower)){ $('edgeBtn').click(); cmdRespond('Edge trace toggled.'); return; }
+    if(/^(export|export\s+crop)$/i.test(lower)){ $('exportBtn').click(); cmdRespond('Crop exported.'); return; }
+    if(/^(read|ocr|extract\s+text)$/i.test(lower)){ $('ocrBtn').click(); cmdRespond('Running OCR…'); return; }
+    if(/^reset$/i.test(lower)){ $('resetFx').click(); cmdRespond('Enhancements reset.'); return; }
+
+    // ---- CAMERA / MOTION ----
+    if(/camera|motion|surveillance/i.test(lower)&&/start|open|on|enable/i.test(lower)){ $('motionStart').click(); cmdRespond('📷 Activating camera & motion detection…'); return; }
+
+    // ---- TERMINAL ----
+    if(/^(terminal|shell|console)$/i.test(lower)){ $('termInput').focus(); cmdRespond('💻 Terminal focused.'); return; }
+
+    // ---- HELP ----
+    if(/^(help|commands|\?|what\s+can\s+you\s+do)$/i.test(lower)){
+      cmdRespond(`Available commands:<br>
+        <b>remember</b> X is Y · <b>who is</b> X · <b>note</b> ... · <b>remind me</b> ... · <b>timer</b> 5m · <b>stopwatch</b><br>
+        <b>define</b> word · <b>weather</b> city · <b>locate</b> place · <b>play</b> song · <b>open</b> github<br>
+        <b>15% of 482</b> · <b>sqrt(295)</b> · <b>125 mph in km/h</b> · <b>enhance</b> · <b>edge</b> · <b>start camera</b><br>
+        Easter eggs: try <b>coffee</b>, <b>42</b>, <b>self destruct</b> 😏`);
+      return;
+    }
+
+    // ---- FALLBACK: try memory, then dictionary, then unknown ----
+    const memHit=memGet(input);
+    if(memHit){ cmdRespond(memHit); return; }
+    // single word? try defining it
+    if(/^[a-z]+$/i.test(input)){ lexDefine(input); cmdRespond(`📖 Looking up "${input}"…`); return; }
+
+    cmdRespond(`Unrecognized command. Type <b>help</b> for options.`,'err');
+    Snd.buzz();
+  }
+
+  /* ---- command input wiring ---- */
+  const cmdInput=$('cmdInput');
+  window.__route=routeCommand;  // expose so voice module routes through master brain
+  cmdInput.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ const v=cmdInput.value; cmdInput.value=''; hideSuggest(); routeCommand(v); }
+    else if(e.key==='Escape'){ hideSuggest(); }
+    else if(e.key==='ArrowDown'||e.key==='ArrowUp'){ navSuggest(e.key==='ArrowDown'?1:-1); e.preventDefault(); }
+  });
+
+  /* ---- autocomplete ---- */
+  const SUGGESTIONS=[
+    {c:'remember X is Y',d:'Store a memory'},{c:'who is X',d:'Recall from memory'},
+    {c:'note ...',d:'Save a note'},{c:'remind me to ...',d:'Add a reminder'},
+    {c:'timer 5m',d:'Start a countdown'},{c:'stopwatch',d:'Start stopwatch'},
+    {c:'define ...',d:'Dictionary lookup'},{c:'weather ...',d:'Get weather'},
+    {c:'locate ...',d:'Find on map'},{c:'play ...',d:'Search music'},
+    {c:'open github',d:'Launch a website'},{c:'15% of 482',d:'Calculate'},
+    {c:'125 mph in km/h',d:'Convert units'},{c:'enhance',d:'Enhance image'},
+    {c:'start camera',d:'Motion detection'},{c:'help',d:'Show all commands'},
+    {c:'coffee',d:'☕'},{c:'42',d:'🤔'},{c:'self destruct',d:'😏'}
+  ];
+  let suggestIdx=-1;
+  function showSuggest(q){
+    const sg=$('cmdSuggest'); const ql=q.toLowerCase();
+    const matches=SUGGESTIONS.filter(s=>s.c.toLowerCase().includes(ql)||s.d.toLowerCase().includes(ql)).slice(0,6);
+    if(!q||!matches.length){ hideSuggest(); return; }
+    sg.innerHTML=matches.map((s,i)=>`<div class="cmd-suggest-item" data-cmd="${s.c}"><span class="cs-cmd">${s.c}</span><span class="cs-desc">${s.d}</span></div>`).join('');
+    sg.classList.add('show'); suggestIdx=-1;
+    sg.querySelectorAll('.cmd-suggest-item').forEach(it=>{
+      it.onclick=()=>{ const c=it.dataset.cmd; cmdInput.value=c.includes('...')||c.includes('X')?c.split(/\s+/)[0]+' ':c; hideSuggest(); cmdInput.focus(); };
+    });
+  }
+  function hideSuggest(){ $('cmdSuggest').classList.remove('show'); suggestIdx=-1; }
+  function navSuggest(dir){
+    const items=$('cmdSuggest').querySelectorAll('.cmd-suggest-item'); if(!items.length)return;
+    suggestIdx=(suggestIdx+dir+items.length)%items.length;
+    items.forEach((it,i)=>it.classList.toggle('active',i===suggestIdx));
+    if(items[suggestIdx])cmdInput.value=items[suggestIdx].dataset.cmd.split(/\s+(?:X|\.\.\.)/)[0].trim();
+  }
+  cmdInput.addEventListener('input',()=>showSuggest(cmdInput.value));
+  cmdInput.addEventListener('blur',()=>setTimeout(hideSuggest,150));
+
+  /* ---- command center mic ---- */
+  if(SpeechRec){
+    const cmdRec=new SpeechRec(); cmdRec.continuous=false; cmdRec.interimResults=true; cmdRec.lang='en-US';
+    let cmdListening=false;
+    cmdRec.onresult=ev=>{
+      let txt='';
+      for(let i=ev.resultIndex;i<ev.results.length;i++)txt+=ev.results[i][0].transcript;
+      cmdInput.value=txt;
+      if(ev.results[ev.results.length-1].isFinal){ cmdInput.value=''; routeCommand(txt.trim()); }
+    };
+    cmdRec.onend=()=>{ cmdListening=false; $('cmdMic').classList.remove('listening'); };
+    cmdRec.onerror=()=>{ cmdListening=false; $('cmdMic').classList.remove('listening'); };
+    $('cmdMic').onclick=()=>{
+      if(cmdListening){ cmdRec.stop(); return; }
+      Snd.enable(); cmdListening=true; $('cmdMic').classList.add('listening');
+      try{ cmdRec.start(); }catch(_){}
+      Snd.tick();
+    };
+  } else {
+    $('cmdMic').style.display='none';
+  }
+
+  /* ---- "/" focuses command bar globally ---- */
+  document.addEventListener('keydown',e=>{
+    if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){
+      e.preventDefault(); cmdInput.focus();
+    }
+  });
+
+  // welcome line
+  setTimeout(()=>{ cmdRespond('Command center online. Type <b>help</b> or press <b>/</b> anywhere to focus this bar.'); },6000);
+
 })();
 </script>
 </body>
