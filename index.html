@@ -1,26 +1,150 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
+<!--
+================================================================================
+
+  ██╗   ██╗██╗   ██╗██████╗ ███████╗██████╗
+  ██║   ██║╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗
+  ██║   ██║ ╚████╔╝ ██████╔╝█████╗  ██████╔╝
+  ╚██╗ ██╔╝  ╚██╔╝  ██╔═══╝ ██╔══╝  ██╔══██╗
+   ╚████╔╝    ██║   ██║     ███████╗██║  ██║
+    ╚═══╝     ╚═╝   ╚═╝     ╚══════╝╚═╝  ╚═╝
+
+  VYPER — Cinematic Optical Core / Command Console
+  A single-file sci-fi assistant OS. No build step, no backend, no API keys.
+  By inknsyntax.
+
+================================================================================
+  HOW THIS FILE IS ORGANIZED
+--------------------------------------------------------------------------------
+  This is ONE self-contained HTML file with three parts:
+
+    1. <style>   — all CSS      (search "CSS:" to jump between blocks)
+    2. <body>    — all HTML      (search "HTML:" to jump between blocks)
+    3. <script>  — all JS         (search "JS:" to jump between blocks)
+
+  Every feature is tagged with the same name across all three parts.
+  Example — to find everything about Music, search:  MUSIC
+  You'll find:  "CSS: MUSIC",  "HTML: MUSIC",  "JS: MUSIC"
+
+--------------------------------------------------------------------------------
+  FEATURE INDEX (each appears in CSS, HTML, and/or JS)
+--------------------------------------------------------------------------------
+    SHELL .............. topbar, telemetry strip, layout, particles
+    BOOT ............... startup self-check sequence
+    COMMAND CENTER ..... the master command bar (routes everything)
+    INSPECTOR .......... image loading, magnifier, filters, export
+    ENHANCE ............ cinematic deblur "enhance" set piece
+    EDGE ............... Sobel edge-detection overlay
+    OCR ................ text extraction (Tesseract.js)
+    GEO ................ Leaflet map + geocoding + fullscreen modal
+    LEXICON ............ dictionary lookup
+    WEATHER ............ Open-Meteo forecast
+    TERMINAL ........... command-line shell
+    MOTION ............. webcam motion detection
+    MUSIC .............. YouTube search + player
+    MEMORY ............. remember/recall key-value store
+    NOTES .............. quick notes
+    CALENDAR ........... events + reminders
+    CALC ............... smart calculator + unit conversion
+    TIMER .............. countdown + stopwatch
+    LAUNCHER ........... open websites by name
+    EGGS ............... hidden easter-egg commands
+    BRAIN .............. local conversational AI (instant, no download)
+    NEURAL ............. real in-browser LLM via WebLLM (no API key)
+    VOICE .............. unified speech recognition + TTS ("Hey VYPER")
+    SIDEBAR ............ expand/collapse/wide panel controls
+
+--------------------------------------------------------------------------------
+  KEYBOARD SHORTCUTS
+--------------------------------------------------------------------------------
+    /            focus the command bar
+    O            open/browse an image
+    E            trigger ENHANCE
+    T            toggle EDGE trace
+    Numpad 5     focus the voice text box
+    ]            toggle wide sidebar (2 columns)
+    [            toggle collapsed sidebar
+    Escape       close any open modal
+    ↑ / ↓        command history (in terminal) / autocomplete nav
+
+--------------------------------------------------------------------------------
+  EXTERNAL LIBRARIES (all free, CDN-loaded, no keys)
+--------------------------------------------------------------------------------
+    Leaflet .......... maps                      (unpkg CDN)
+    Tesseract.js ..... OCR                        (lazy-loaded on first use)
+    Open-Meteo ....... weather API                (keyless)
+    Nominatim ........ geocoding                   (keyless, OpenStreetMap)
+    dictionaryapi.dev  dictionary                  (keyless)
+    Invidious ........ YouTube search              (keyless, public instances)
+    WebLLM ........... in-browser LLM             (lazy-loaded on "ai on")
+    Web Speech API ... voice in/out                (browser built-in)
+    Web Audio API .... UI sound effects            (browser built-in, synth)
+
+  NOTE: persistence (memory/notes/calendar/settings) uses localStorage,
+        which works on GitHub Pages / any real domain.
+================================================================================
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VYPER — Image Inspector</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ============================================================================
+   CSS TABLE OF CONTENTS   (search the label to jump, e.g. "CSS: MUSIC")
+   ----------------------------------------------------------------------------
+     CSS: ROOT ............ color / font variables
+     CSS: SHELL ........... base, topbar, telemetry, layout, scanlines
+     CSS: SIDEBAR ......... rail + expand/collapse/wide states
+     CSS: INSPECTOR ....... magnifier, readouts, filter controls
+     CSS: BOOT ............ startup sequence overlay
+     CSS: ENHANCE ......... enhance set piece + edge/scan overlays
+     CSS: GEO ............. map + fullscreen geo modal
+     CSS: LEXICON ......... dictionary results
+     CSS: VOICE ........... voice orb + transcript
+     CSS: WEATHER ......... forecast cards
+     CSS: TERMINAL ........ shell window
+     CSS: MOTION .......... webcam + detection overlay
+     CSS: MUSIC ........... track list + player
+     CSS: PARTICLES ....... background particle canvas
+     CSS: WAKE ............ "Hey VYPER" pill indicator
+     CSS: COMMAND CENTER .. master command bar + autocomplete
+     CSS: CHAT ............ conversation log bubbles + AI pill
+     CSS: TIMER ........... countdown/stopwatch pill
+     CSS: DATA ............ memory / notes / calendar list styling
+   ============================================================================ */
+
+  /* ─────────────────────────  CSS: ROOT  ───────────────────────── */
   :root{
-    --bg:#0a0b0e;
-    --panel:#13151b;
-    --panel-2:#0f1116;
-    --line:#262a33;
-    --ice:#e8ecf2;
-    --muted:#7b8494;
-    --muted-2:#565d6b;
+    /* Layered depth system — each surface is clearly distinguishable:
+       bg (deepest) → panel-2 (secondary) → panel (cards) → hover states  */
+    --bg:#07080c;
+    --panel:#161b26;
+    --panel-2:#0e1119;
+    --line:#2c3242;
+    --line-2:#3d465c;
+    --ice:#eef2f9;
+    --muted:#96a0b5;
+    --muted-2:#646d84;
     --amber:#ffb627;
-    --amber-dim:rgba(255,182,39,.14);
+    --amber-2:#ffd166;
+    --amber-dim:rgba(255,182,39,.16);
     --red:#ff5470;
-    --mono:'SFMono-Regular',ui-monospace,'Menlo','Consolas',monospace;
-    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'JetBrains Mono','SFMono-Regular',ui-monospace,'Menlo','Consolas',monospace;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  ::selection{background:var(--amber);color:#141005}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:4px}
+  *{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+  *::-webkit-scrollbar{width:8px;height:8px}
+  *::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+  *::-webkit-scrollbar-thumb:hover{background:#333945}
+  *::-webkit-scrollbar-track{background:transparent}
   html,body{height:100%}
   body{
     background:var(--bg);
@@ -35,14 +159,14 @@
   body::before{
     content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
     background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);
-    mix-blend-mode:overlay;opacity:.6;
+    mix-blend-mode:overlay;opacity:.3;
   }
 
-  /* ---------- Top bar ---------- */
+  /* ─────────────────────────  CSS: SHELL — top bar  ───────────────────────── */
   .topbar{
     height:52px;display:flex;align-items:center;gap:18px;flex-shrink:0;
-    padding:0 20px;border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg,#101218,#0c0e13);
+    padding:0 20px;border-bottom:1px solid var(--line);box-shadow:0 4px 24px -12px rgba(0,0,0,.9);
+    background:linear-gradient(180deg,#151a26,#0d1017);
   }
   .brand{display:flex;align-items:baseline;gap:10px}
   .brand .mark{
@@ -56,19 +180,24 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
   #clock{color:var(--ice)}
 
-  /* ---------- Layout ---------- */
+  /* ─────────────────────────  CSS: SHELL — layout & stage  ───────────────────────── */
   .stage{display:grid;grid-template-columns:1fr var(--rail-w,360px);flex:1;min-height:0;overflow:hidden;position:relative;z-index:1;transition:grid-template-columns .35s cubic-bezier(.4,0,.2,1)}
   .stage.rail-collapsed{--rail-w:0px}
   .stage.rail-wide{--rail-w:680px}
   .canvas-wrap{position:relative;overflow:hidden;background:
-    radial-gradient(120% 120% at 50% 0%,#101319,#08090c);
+    radial-gradient(120% 120% at 50% 0%,#11151f,#05060a);
     display:flex;align-items:center;justify-content:center}
 
   /* grid backdrop */
   .canvas-wrap::before{
     content:"";position:absolute;inset:0;
     background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
-    background-size:44px 44px;opacity:.13;pointer-events:none;
+    background-size:44px 44px;opacity:.22;pointer-events:none;
+  }
+  /* cinematic vignette — darkens edges, focuses the center */
+  .canvas-wrap::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+    background:radial-gradient(120% 95% at 50% 42%,transparent 52%,rgba(0,0,0,.55) 100%);
   }
 
   /* dropzone / empty state */
@@ -82,11 +211,11 @@
     display:flex;align-items:center;justify-content:center;position:relative;
   }
   .empty .ring::after{content:"";position:absolute;inset:14px;border:1px solid var(--line);border-radius:50%}
-  .empty .ring svg{width:34px;height:34px;stroke:var(--amber);fill:none;stroke-width:1.4}
+  .empty .ring svg{width:34px;height:34px;stroke:var(--amber-2);fill:none;stroke-width:1.5;filter:drop-shadow(0 0 8px rgba(255,182,39,.35))}
   .empty h2{font-family:var(--mono);font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--ice);font-weight:600}
   .empty p{font-size:13px;color:var(--muted);max-width:340px;line-height:1.6}
   .empty .keys{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  kbd{font-family:var(--mono);font-size:10.5px;background:var(--panel);border:1px solid var(--line);
+  kbd{font-family:var(--mono);font-size:10.5px;background:#141926;border:1px solid var(--line);
     border-bottom-color:#000;border-radius:5px;padding:4px 8px;color:var(--muted);letter-spacing:.08em}
   body.dragging .empty{border:1px solid var(--amber);background:var(--amber-dim)}
   .btn-load{
@@ -119,7 +248,7 @@
   .canvas-bar{
     position:absolute;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;gap:8px;
     padding:0 18px;border-top:1px solid var(--line);
-    background:linear-gradient(0deg,#0c0e13,rgba(12,14,19,0));backdrop-filter:blur(2px);z-index:7;
+    background:linear-gradient(0deg,#0d1017,rgba(13,16,23,0));backdrop-filter:blur(2px);z-index:7;
   }
   .canvas-bar .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
   .canvas-bar .meta b{color:var(--amber)}
@@ -129,19 +258,19 @@
     background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:8px 13px;border-radius:6px;
     cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px;
   }
-  .chip:hover{border-color:var(--amber);color:var(--ice)}
+  .chip:hover{border-color:var(--amber);color:var(--ice);background:#1b2130}
   .chip svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5}
   .chip.primary{background:var(--amber);color:#1a1303;border-color:var(--amber);font-weight:700}
   .chip.primary:hover{filter:brightness(1.08)}
   .chip:disabled{opacity:.4;cursor:not-allowed}
 
-  /* ---------- Right rail ---------- */
+  /* ─────────────────────────  CSS: SIDEBAR — rail + expand/collapse  ───────────────────────── */
   .rail{border-left:1px solid var(--line);background:var(--panel-2);overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;position:relative}
   .rail::-webkit-scrollbar{width:8px}
   .rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
   /* rail header with expand/collapse controls */
   .rail-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
-    padding:10px 14px;background:rgba(15,17,22,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+    padding:10px 14px;background:rgba(17,21,31,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
   .rail-header .rh-title{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);flex:1}
   .rail-header .rh-btn{width:30px;height:30px;border:1px solid var(--line);background:var(--panel);border-radius:6px;
     cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;color:var(--muted)}
@@ -161,18 +290,24 @@
   .module h3 .idx{color:var(--amber);font-weight:700}
   .module h3::after{content:"";flex:1;height:1px;background:var(--line)}
 
-  /* floating reopen tab when collapsed */
-  .rail-reopen{position:absolute;top:50%;right:0;transform:translateY(-50%);z-index:30;
-    width:24px;height:64px;background:var(--panel);border:1px solid var(--line);border-right:none;
-    border-radius:8px 0 0 8px;cursor:pointer;display:none;align-items:center;justify-content:center;transition:.15s}
-  .rail-reopen:hover{border-color:var(--amber);background:var(--amber-dim)}
-  .rail-reopen svg{width:14px;height:14px;stroke:var(--amber);fill:none;stroke-width:2}
-  .stage.rail-collapsed .rail-reopen{display:flex}
+  /* floating reopen tab — shown only when the rail is collapsed.
+     position:fixed to the viewport edge so .stage's overflow:hidden can't clip it. */
+  .rail-reopen{position:fixed;top:50%;right:0;transform:translateY(-50%);z-index:400;
+    width:26px;height:72px;background:var(--panel);border:1px solid var(--amber);border-right:none;
+    border-radius:9px 0 0 9px;cursor:pointer;display:none;align-items:center;justify-content:center;
+    transition:.15s;box-shadow:-4px 0 18px rgba(255,182,39,.18);padding:0}
+  .rail-reopen:hover{background:var(--amber-dim);box-shadow:-4px 0 24px rgba(255,182,39,.35)}
+  .rail-reopen svg{width:15px;height:15px;stroke:var(--amber);fill:none;stroke-width:2.2}
+  /* show it whenever the stage is in the collapsed state */
+  .stage.rail-collapsed .rail-reopen,
+  .rail-reopen.force-show{display:flex;animation:reopenPulse 2s ease-in-out 3}
+  @keyframes reopenPulse{0%,100%{box-shadow:-4px 0 18px rgba(255,182,39,.18)}50%{box-shadow:-4px 0 26px rgba(255,182,39,.5)}}
 
+  /* ─────────────────────────  CSS: INSPECTOR — magnifier, readouts, filters  ───────────────────────── */
   /* magnifier */
   .mag-frame{
     position:relative;width:100%;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;overflow:hidden;
-    background:#000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="%230d0f14"/></svg>');
+    background:#000 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="%23101420"/></svg>');
   }
   #mag{position:absolute;inset:0;width:100%;height:100%;image-rendering:auto}
   .mag-cross{position:absolute;inset:0;pointer-events:none}
@@ -207,7 +342,7 @@
 
   /* OCR */
   .ocr-out{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:13px;
-    min-height:84px;font-size:12.5px;line-height:1.6;color:var(--ice);max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+    min-height:84px;font-size:13px;line-height:1.65;color:var(--ice);max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
   .ocr-out.placeholder{color:var(--muted-2);font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
   .ocr-bar{height:2px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:10px;display:none}
   .ocr-bar.show{display:block}
@@ -223,11 +358,13 @@
   @media(max-width:860px){
     .stage{grid-template-columns:1fr;grid-template-rows:1fr auto;flex:1;min-height:0}
     .rail{border-left:none;border-top:1px solid var(--line);max-height:46vh}
+    .stage.rail-wide{--rail-w:360px}
+    .stage.rail-wide .rail-modules{column-count:1}
     #img{max-height:calc(50vh - 56px)}
   }
   @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-  /* ---------- BOOT SEQUENCE ---------- */
+  /* ─────────────────────────  CSS: BOOT — startup sequence  ───────────────────────── */
   #boot{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:30px;transition:opacity .6s}
   #boot.done{opacity:0;pointer-events:none}
@@ -267,12 +404,6 @@
   .hud-corner.bl{bottom:70px;left:14px;border-right:none;border-top:none}
   .hud-corner.br{bottom:70px;right:14px;border-left:none;border-top:none}
 
-  /* radar sweep behind empty state */
-  .sweep{position:absolute;width:520px;height:520px;left:50%;top:50%;transform:translate(-50%,-50%);
-    border-radius:50%;pointer-events:none;z-index:1;opacity:.5;
-    background:conic-gradient(from 0deg,transparent 0deg,rgba(255,182,39,.12) 18deg,transparent 36deg);
-    animation:spin 6s linear infinite}
-  .empty.hide ~ .sweep{display:none}
 
   /* sound toggle in topbar */
   .sndtog{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
@@ -290,7 +421,7 @@
   @keyframes logIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1}}
   .log::-webkit-scrollbar{width:6px}.log::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
 
-  /* ---------- TIER 3: ENHANCE SET PIECE ---------- */
+  /* ─────────────────────────  CSS: ENHANCE — set piece + edge/scan overlays  ───────────────────────── */
 
   /* Scan line that sweeps the image */
   #scanLine{
@@ -312,12 +443,12 @@
   /* ENHANCE modal overlay */
   #enhanceModal{
     position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;
-    background:rgba(10,11,14,.6);backdrop-filter:blur(1px);
+    background:rgba(7,8,12,.65);backdrop-filter:blur(1px);
   }
   #enhanceModal.open{display:flex}
   .enhance-hud{
     width:min(460px,88vw);border:1px solid var(--amber);border-radius:10px;
-    background:rgba(10,11,14,.92);padding:28px 28px 24px;position:relative;overflow:hidden;
+    background:rgba(11,13,20,.94);padding:28px 28px 24px;position:relative;overflow:hidden;
   }
   .enhance-hud::before{
     content:"";position:absolute;inset:0;
@@ -358,21 +489,21 @@
   /* enhance chip active state */
   .chip.enhance-active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber)}
 
-  /* ===== GEO SCAN MODAL ===== */
+  /* ─────────────────────────  CSS: GEO — fullscreen map modal  ───────────────────────── */
   #geoModal{
     position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;
-    background:rgba(10,11,14,.75);backdrop-filter:blur(3px);
+    background:rgba(7,8,12,.78);backdrop-filter:blur(3px);
   }
   #geoModal.open{display:flex}
   .geo-hud{
     width:min(820px,92vw);border:1px solid var(--amber);border-radius:10px;
-    background:rgba(10,11,14,.96);overflow:hidden;position:relative;
+    background:rgba(11,13,20,.96);overflow:hidden;position:relative;
     box-shadow:0 0 60px rgba(255,182,39,.12);
   }
   .geo-hud-header{
     display:flex;align-items:center;justify-content:space-between;
     padding:14px 18px;border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg,#101218,#0c0e13);
+    background:linear-gradient(180deg,#151a26,#0d1017);
   }
   .geo-hud-header .title{font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--amber)}
   .geo-hud-header .coords{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.1em}
@@ -393,7 +524,7 @@
     background:linear-gradient(90deg,transparent,rgba(255,182,39,.9),transparent);
     box-shadow:0 0 14px 3px rgba(255,182,39,.4);display:none}
   .geo-scan-line.on{display:block;animation:scanSweep 1.6s linear forwards}
-  #geoMap{width:100%;height:220px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d0f14}
+  #geoMap{width:100%;height:220px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0b0e16}
   .geo-bar{display:flex;gap:7px;margin-top:11px}
   .geo-bar input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
     color:var(--ice);font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:9px 12px;outline:none}
@@ -411,7 +542,7 @@
   .leaflet-control-attribution{display:none}
   .leaflet-control-zoom a{background:var(--panel)!important;color:var(--amber)!important;border-color:var(--line)!important}
 
-  /* ===== LEXICON ===== */
+  /* ─────────────────────────  CSS: LEXICON — dictionary  ───────────────────────── */
   .lex-bar{display:flex;gap:7px;margin-bottom:12px}
   .lex-bar input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
     color:var(--ice);font-family:var(--mono);font-size:11px;padding:9px 12px;outline:none;letter-spacing:.08em}
@@ -422,13 +553,13 @@
   .lex-phonetic{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px}
   .lex-pos{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted-2);
     background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:3px 8px;display:inline-block;margin:8px 0 6px}
-  .lex-def{color:var(--ice);font-size:12.5px;margin-bottom:5px;padding-left:10px;border-left:2px solid var(--line)}
+  .lex-def{color:var(--ice);font-size:13px;line-height:1.65;margin-bottom:6px;padding-left:10px;border-left:2px solid var(--line)}
   .lex-example{color:var(--muted);font-size:11.5px;font-style:italic;padding-left:10px;margin-bottom:8px}
   .lex-empty{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
   .lex-scroll{max-height:260px;overflow-y:auto}
   .lex-scroll::-webkit-scrollbar{width:5px}.lex-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
 
-  /* ===== VOICE / JARVIS ===== */
+  /* ─────────────────────────  CSS: VOICE — orb + transcript  ───────────────────────── */
   .voice-orb-wrap{display:flex;justify-content:center;margin-bottom:16px}
   .voice-orb{
     width:72px;height:72px;border-radius:50%;border:1.5px solid var(--line);
@@ -467,7 +598,7 @@
   .voice-chat-bar input:focus{border-color:var(--amber)}
   .voice-chat-bar input::placeholder{color:var(--muted-2)}
 
-  /* ===== WEATHER ===== */
+  /* ─────────────────────────  CSS: WEATHER — forecast cards  ───────────────────────── */
   .weather-hero{
     display:flex;align-items:center;gap:16px;padding:14px;
     background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:12px;
@@ -495,7 +626,7 @@
   .forecast-day .fd-hi{font-family:var(--mono);font-size:11px;color:var(--amber);font-weight:700}
   .forecast-day .fd-lo{font-family:var(--mono);font-size:10px;color:var(--muted)}
 
-  /* ===== TERMINAL ===== */
+  /* ─────────────────────────  CSS: TERMINAL — shell window  ───────────────────────── */
   .term-wrap{
     background:#050608;border:1px solid var(--line);border-radius:8px;overflow:hidden;
     font-family:var(--mono);font-size:12px;
@@ -516,7 +647,7 @@
   .term-prompt-label{font-family:var(--mono);font-size:12px;color:var(--amber);flex:0 0 auto;margin-right:8px}
   #termInput{flex:1;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:12px;color:var(--ice);caret-color:var(--amber)}
 
-  /* ===== MOTION DETECTION ===== */
+  /* ─────────────────────────  CSS: MOTION — webcam + overlay  ───────────────────────── */
   .motion-cam{position:relative;width:100%;aspect-ratio:16/9;background:#000;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:12px}
   #motionVideo{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
   #motionCanvas{position:absolute;inset:0;width:100%;height:100%;opacity:.45;mix-blend-mode:screen;transform:scaleX(-1)}
@@ -531,7 +662,7 @@
   .motion-stats b{font-family:var(--mono);font-size:12px;color:var(--ice)}
   .motion-stats b.hot{color:var(--red)}
 
-  /* ===== MUSIC ===== */
+  /* ─────────────────────────  CSS: MUSIC — track list + player  ───────────────────────── */
   .music-search{display:flex;gap:7px;margin-bottom:12px}
   .music-search input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:6px;
     color:var(--ice);font-family:var(--mono);font-size:11px;padding:9px 12px;outline:none;letter-spacing:.08em}
@@ -552,10 +683,10 @@
   .music-track.playing .mt-play{display:block}
   .music-now{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;min-height:14px}
 
-  /* ===== PARTICLES canvas ===== */
+  /* ─────────────────────────  CSS: PARTICLES — background canvas  ───────────────────────── */
   #particleCanvas{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.18}
 
-  /* ===== HEY VYPER wake indicator ===== */
+  /* ─────────────────────────  CSS: WAKE — "Hey VYPER" pill  ───────────────────────── */
   .wake-pill{
     position:fixed;bottom:18px;right:20px;z-index:800;
     font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
@@ -565,10 +696,10 @@
   .wake-pill.active{border-color:var(--amber);color:var(--amber);box-shadow:0 0 16px rgba(255,182,39,.25)}
   .wake-pill.heard{border-color:#56cfff;color:#56cfff;box-shadow:0 0 16px rgba(86,207,255,.3)}
 
-  /* ===== COMMAND CENTER (master bar) ===== */
+  /* ─────────────────────────  CSS: COMMAND CENTER — master bar + autocomplete  ───────────────────────── */
   .cmd-center{
-    position:relative;z-index:7;border-bottom:1px solid var(--line);flex-shrink:0;
-    background:linear-gradient(180deg,#0f1218,#0b0d12);padding:12px 18px;
+    position:relative;z-index:7;border-bottom:1px solid var(--line);flex-shrink:0;box-shadow:0 8px 32px -16px rgba(0,0,0,.9);
+    background:linear-gradient(180deg,#131826,#0c0f17);padding:12px 18px;
   }
   .cmd-row{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto}
   .cmd-prompt{font-family:var(--mono);font-size:16px;color:var(--amber);font-weight:700;flex:0 0 auto;text-shadow:0 0 12px rgba(255,182,39,.4)}
@@ -595,16 +726,33 @@
   .cmd-suggest-item:hover,.cmd-suggest-item.active{background:var(--amber-dim)}
   .cmd-suggest-item .cs-cmd{font-family:var(--mono);font-size:12px;color:var(--amber);flex:0 0 auto;min-width:120px}
   .cmd-suggest-item .cs-desc{font-size:11.5px;color:var(--muted)}
-  /* response line */
-  .cmd-response{max-width:1100px;margin:10px auto 0;font-family:var(--mono);font-size:12.5px;line-height:1.6;
-    color:var(--ice);background:rgba(0,0,0,.3);border:1px solid var(--line);border-left:2px solid var(--amber);
-    border-radius:6px;padding:10px 14px;display:none;animation:logIn .25s ease}
-  .cmd-response.show{display:block}
-  .cmd-response .cr-label{color:var(--amber);font-weight:700;margin-right:8px}
-  .cmd-response.err{border-left-color:var(--red)}
-  .cmd-response.err .cr-label{color:var(--red)}
 
-  /* ===== TIMER overlay ===== */
+  /* ─────────────────────────  CSS: CHAT — conversation log in command center  ───────────────────────── */
+  .cmd-chat{max-width:1100px;margin:10px auto 0;display:none;flex-direction:column;gap:9px;
+    max-height:230px;overflow-y:auto;padding:4px 2px;scroll-behavior:smooth;overscroll-behavior:contain}
+  .cmd-chat.show{display:flex}
+  .msg{display:flex;flex-direction:column;gap:3px;animation:logIn .22s ease}
+  .msg .who{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--muted-2);text-transform:uppercase}
+  .msg.user{align-items:flex-end}
+  .msg.vyper{align-items:flex-start}
+  .msg .bubble{max-width:78%;padding:9px 14px;border-radius:12px;font-size:13px;line-height:1.65;
+    border:1px solid var(--line);word-break:break-word}
+  .msg.user .bubble{background:#1d2333;color:var(--ice);border-bottom-right-radius:4px}
+  .msg.vyper .bubble{background:rgba(0,0,0,.35);border-left:2px solid var(--amber);color:var(--ice);
+    border-bottom-left-radius:4px;font-family:var(--mono);font-size:12.5px}
+  .msg.vyper.err .bubble{border-left-color:var(--red)}
+  .msg.vyper .bubble b{color:var(--amber)}
+  .msg.vyper .bubble.thinking{color:var(--muted-2);font-style:italic}
+
+  /* AI (neural core) status pill in the command row */
+  .ai-pill{flex:0 0 auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+    border:1px solid var(--line);color:var(--muted-2);background:var(--panel);padding:8px 12px;border-radius:8px;
+    cursor:pointer;transition:.2s;user-select:none;white-space:nowrap}
+  .ai-pill:hover{border-color:var(--amber);color:var(--amber)}
+  .ai-pill.loading{border-color:var(--amber);color:var(--amber);animation:pulse 1.4s ease-in-out infinite}
+  .ai-pill.on{border-color:#4cff91;color:#4cff91;box-shadow:0 0 12px rgba(76,255,145,.18)}
+
+  /* ─────────────────────────  CSS: TIMER — countdown/stopwatch pill  ───────────────────────── */
   .timer-pill{
     position:fixed;bottom:18px;left:20px;z-index:800;display:none;align-items:center;gap:12px;
     font-family:var(--mono);background:var(--panel);border:1px solid var(--amber);border-radius:10px;
@@ -618,11 +766,12 @@
   .timer-pill button{background:none;border:1px solid var(--line);color:var(--muted);font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:5px;cursor:pointer}
   .timer-pill button:hover{border-color:var(--red);color:var(--red)}
 
-  /* ===== MEMORY / NOTES / CALENDAR modules ===== */
+  /* ─────────────────────────  CSS: DATA — memory / notes / calendar  ───────────────────────── */
   .data-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto}
   .data-list::-webkit-scrollbar{width:5px}.data-list::-webkit-scrollbar-thumb{background:var(--line)}
-  .data-item{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;background:var(--panel);border:1px solid var(--line);border-radius:7px}
-  .data-item .di-content{flex:1;min-width:0;font-size:12px;color:var(--ice);line-height:1.5;word-break:break-word}
+  .data-item{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;background:var(--panel);border:1px solid var(--line);border-radius:7px;transition:border-color .15s}
+  .data-item:hover{border-color:var(--line-2)}
+  .data-item .di-content{flex:1;min-width:0;font-size:13px;color:var(--ice);line-height:1.6;word-break:break-word}
   .data-item .di-key{font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.08em;margin-bottom:3px}
   .data-item .di-time{font-family:var(--mono);font-size:9px;color:var(--muted-2);letter-spacing:.1em;margin-top:3px}
   .data-item .di-del{flex:0 0 auto;background:none;border:none;color:var(--muted-2);cursor:pointer;font-size:14px;padding:0 2px;line-height:1}
@@ -635,11 +784,24 @@
 </style>
 </head>
 <body>
-  <!-- BOOT SEQUENCE -->
+<!-- ============================================================================
+     HTML TABLE OF CONTENTS   (search the label to jump, e.g. "HTML: MUSIC")
+     ----------------------------------------------------------------------------
+       HTML: BOOT ............ startup overlay
+       HTML: SHELL ........... topbar + telemetry strip
+       HTML: COMMAND CENTER .. master command bar
+       HTML: INSPECTOR ....... left canvas, image, reticle, toolbar
+       HTML: SIDEBAR ......... right rail wrapper + expand controls
+         └ modules 01–14 live inside the rail, each tagged in its <h3>
+       HTML: GEO ............. fullscreen map modal
+       HTML: OVERLAYS ........ particles, wake pill, timer pill, toasts
+     ============================================================================ -->
+
+  <!-- ══════════════  HTML: BOOT — startup sequence  ══════════════ -->
   <div id="boot">
     <svg class="aperture" id="bootAperture" viewBox="0 0 100 100">
       <g class="ring-r" id="bootRing">
-        <circle cx="50" cy="50" r="44" fill="none" stroke="#262a33" stroke-width="1"/>
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#2c3242" stroke-width="1"/>
         <circle cx="50" cy="50" r="44" fill="none" stroke="#ffb627" stroke-width="1.5"
           stroke-dasharray="40 240" stroke-linecap="round"/>
       </g>
@@ -658,7 +820,7 @@
           <circle cx="50" cy="50" r="42" fill="none" stroke="#ffb627" stroke-width="3"
             stroke-dasharray="34 210" stroke-linecap="round"/>
         </g>
-        <circle cx="50" cy="50" r="30" fill="none" stroke="#262a33" stroke-width="2"/>
+        <circle cx="50" cy="50" r="30" fill="none" stroke="#2c3242" stroke-width="2"/>
         <circle cx="50" cy="50" r="8" fill="#ffb627"/>
       </svg>
       <span class="mark">VY<b>P</b>ER</span>
@@ -671,7 +833,7 @@
     </div>
   </div>
 
-  <!-- TELEMETRY -->
+  <!-- ══════════════  HTML: SHELL — telemetry strip  ══════════════ -->
   <div class="telemetry" id="telemetry">
     <div class="t"><span class="ico"></span>VYPER OPTICAL CORE</div>
     <div class="t">RES <b id="telRes">—</b></div>
@@ -681,30 +843,30 @@
     <div class="t flex">RENDER <b id="telFps">—</b> FPS</div>
   </div>
 
-  <!-- COMMAND CENTER -->
+  <!-- ══════════════  HTML: COMMAND CENTER — master command bar  ══════════════ -->
   <div class="cmd-center">
     <div class="cmd-row">
       <span class="cmd-prompt">&gt;_</span>
       <div class="cmd-input-wrap">
-        <input id="cmdInput" autocomplete="off" spellcheck="false" placeholder="Type a command…  try: define gravity · weather chicago · remember 1 plus 1 is 2 · 15% of 482 · timer 5m · open github · help">
+        <input id="cmdInput" autocomplete="off" spellcheck="false" placeholder="Type a command…  try: define gravity · weather chicago · remember my dog is Fat Albert · 15% of 482 · timer 5m · open github · help">
         <span class="cmd-hint-key">⏎</span>
         <div class="cmd-suggest" id="cmdSuggest"></div>
       </div>
       <button class="cmd-mic" id="cmdMic" title="Voice command">
         <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3M8 22h8"/></svg>
       </button>
+      <span class="ai-pill" id="aiPill" title="Neural core — a real AI running in your browser. Click to enable.">AI · OFF</span>
     </div>
-    <div class="cmd-response" id="cmdResponse"></div>
+    <div class="cmd-chat" id="cmdChat"></div>
   </div>
 
   <div class="stage">
-    <!-- LEFT: canvas -->
+    <!-- ══════════════  HTML: INSPECTOR — left canvas / image / reticle  ══════════════ -->
     <div class="canvas-wrap" id="canvasWrap">
       <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
       <div class="hud-corner bl"></div><div class="hud-corner br"></div>
-      <div class="sweep" id="sweep"></div>
 
-      <!-- TIER 3 elements -->
+      <!-- HTML: ENHANCE / EDGE overlay elements -->
       <div id="scanLine"></div>
       <canvas id="edgeCanvas"></canvas>
       <div id="enhanceModal">
@@ -730,7 +892,7 @@
         </div>
         <button class="btn-load" id="browseBtn">Browse files</button>
         <div class="keys">
-          <kbd>Drag &amp; drop</kbd><kbd>Ctrl + V paste</kbd><kbd>Crosshair to zoom</kbd>
+          <kbd>Drag &amp; drop</kbd><kbd>⌘ / Ctrl + V paste</kbd><kbd>Crosshair to zoom</kbd>
         </div>
       </div>
 
@@ -760,11 +922,8 @@
       </div>
     </div>
 
-    <!-- RIGHT: modules -->
+    <!-- ══════════════  HTML: SIDEBAR — right rail (modules 01–14)  ══════════════ -->
     <aside class="rail">
-      <div class="rail-reopen" id="railReopen" title="Show panel">
-        <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-      </div>
       <div class="rail-header">
         <span class="rh-title">Modules · 14</span>
         <button class="rh-btn" id="railWide" title="Expand to two columns">
@@ -776,6 +935,7 @@
       </div>
       <div class="rail-modules">
       <section class="module">
+        <!-- HTML: INSPECTOR (module 01) -->
         <h3><span class="idx">01</span> Magnifier</h3>
         <div class="mag-frame">
           <canvas id="mag" width="320" height="320"></canvas>
@@ -795,6 +955,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: ENHANCE (module 02) -->
         <h3><span class="idx">02</span> Enhance</h3>
         <div class="ctrl">
           <div class="ctrl-head"><label>Contrast</label><span class="val" id="contrastVal">100%</span></div>
@@ -820,6 +981,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: OCR (module 03) -->
         <h3><span class="idx">03</span> Text extraction</h3>
         <button class="chip primary" id="ocrBtn" style="width:100%;justify-content:center" disabled>
           <svg viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>Read text in image
@@ -830,11 +992,13 @@
       </section>
 
       <section class="module">
+        <!-- HTML: LOG (module 04) -->
         <h3><span class="idx">04</span> Session log</h3>
         <div class="log" id="log"></div>
       </section>
 
       <section class="module">
+        <!-- HTML: GEO (module 05) -->
         <h3><span class="idx">05</span> Geo scan</h3>
         <div id="geoMap"></div>
         <div class="geo-bar">
@@ -855,6 +1019,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: LEXICON (module 06) -->
         <h3><span class="idx">06</span> Lexicon</h3>
         <div class="lex-bar">
           <input id="lexInput" placeholder="Define a word…" autocomplete="off">
@@ -866,6 +1031,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: WEATHER (module 07) -->
         <h3><span class="idx">07</span> Weather</h3>
         <div class="weather-bar">
           <input id="weatherInput" placeholder="City or use geo location…" autocomplete="off">
@@ -880,6 +1046,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: TERMINAL (module 08) -->
         <h3><span class="idx">08</span> Terminal</h3>
         <div class="term-wrap">
           <div class="term-titlebar">
@@ -897,6 +1064,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: MOTION (module 09) -->
         <h3><span class="idx">09</span> Motion detection</h3>
         <div class="motion-cam">
           <video id="motionVideo" autoplay muted playsinline></video>
@@ -923,6 +1091,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: MUSIC (module 10) -->
         <h3><span class="idx">10</span> Music</h3>
         <div class="music-now" id="musicNow"></div>
         <div class="music-search">
@@ -936,6 +1105,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: MEMORY (module 11) -->
         <h3><span class="idx">11</span> Memory</h3>
         <div class="data-list" id="memList"></div>
         <div class="data-add">
@@ -945,6 +1115,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: NOTES (module 12) -->
         <h3><span class="idx">12</span> Notes</h3>
         <div class="data-list" id="noteList"></div>
         <div class="data-add">
@@ -954,6 +1125,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: CALENDAR (module 13) -->
         <h3><span class="idx">13</span> Calendar</h3>
         <div class="data-list" id="calList"></div>
         <div class="data-add">
@@ -963,6 +1135,7 @@
       </section>
 
       <section class="module">
+        <!-- HTML: VOICE (module 14) -->
         <h3><span class="idx">14</span> Voice core</h3>
         <div class="voice-orb-wrap">
           <div class="voice-orb" id="voiceOrb" title="Click to speak">
@@ -983,8 +1156,14 @@
       </section>
       </div>
     </aside>
+
+    <!-- reopen tab — sits on .stage (not .rail) so it stays visible when the rail collapses to 0 width -->
+    <button class="rail-reopen" id="railReopen" title="Show panel (press [ )">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
   </div>
 
+  <!-- ══════════════  HTML: OVERLAYS — toast / particles / wake pill / timer pill  ══════════════ -->
   <div class="toast" id="toast"></div>
   <input type="file" id="fileInput" accept="image/*" hidden>
 
@@ -995,7 +1174,7 @@
     <button id="timerCancel">Cancel</button>
   </div>
 
-  <!-- GEO SCAN MODAL -->
+  <!-- ══════════════  HTML: GEO — fullscreen map modal  ══════════════ -->
   <div id="geoModal">
     <div class="geo-hud">
       <div class="geo-hud-header">
@@ -1018,10 +1197,53 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+/* ============================================================================
+   JS TABLE OF CONTENTS   (search the label to jump, e.g. "JS: MUSIC")
+   ----------------------------------------------------------------------------
+   Everything runs inside ONE IIFE (function(){ ... })() to avoid globals.
+   Order matters loosely: helpers first, then features, then the command
+   router that ties them together, then boot-time wiring at the bottom.
+
+     JS: SOUND ............ Web Audio synth sound effects (Snd)
+     JS: LOG .............. session log helper (logEvent)
+     JS: BOOT ............. startup self-check animation
+     JS: TELEMETRY ........ live FPS / stats strip
+     JS: INSPECTOR ........ image load, filters, magnifier, export
+     JS: ENHANCE .......... unsharp mask + enhance set piece
+     JS: EDGE ............. Sobel edge detection
+     JS: OCR .............. (inside INSPECTOR) text extraction
+     JS: GEO .............. Leaflet map, geocoding, modal
+     JS: LEXICON .......... dictionary lookup
+     JS: VOICE ............ unified speech controller (VC) + intent engine
+     JS: WEATHER .......... Open-Meteo fetch + render
+     JS: TERMINAL ......... shell command interpreter
+     JS: MOTION ........... webcam frame-diff detection
+     JS: MUSIC ............ YouTube/Invidious search + player
+     JS: PARTICLES ........ background particle animation
+     JS: STORAGE .......... localStorage wrapper (Store)
+     JS: MEMORY ........... remember/recall key-value
+     JS: NOTES ............ quick notes
+     JS: CALENDAR ......... events / reminders
+     JS: CALC ............. smart calculator + unit conversion
+     JS: TIMER ............ countdown + stopwatch
+     JS: LAUNCHER ......... open websites by name
+     JS: EGGS ............. easter-egg commands
+     JS: BRAIN ............ local conversational AI (context, games, typo fix)
+     JS: NEURAL ........... in-browser LLM via WebLLM (ai on / ask)
+     JS: ROUTER ........... MASTER command router (parses all input)
+     JS: COMMAND INPUT .... command bar wiring + autocomplete
+     JS: SIDEBAR .......... expand / collapse / wide controls
+
+   HOW INPUT FLOWS:
+     user types in command bar  ─┐
+     user speaks ("Hey VYPER")  ─┼─►  routeCommand()  ─►  the matching feature
+     terminal command           ─┘         (JS: ROUTER)
+   ============================================================================ */
+
 (function(){
   const $=id=>document.getElementById(id);
 
-  /* ===================== SOUND ENGINE ===================== */
+  /* ═══════════════════════  JS: SOUND — Web Audio synth FX  ═══════════════════════ */
   const Snd=(()=>{
     let ctx=null, on=false, master=null;
     function init(){ if(ctx)return; ctx=new (window.AudioContext||window.webkitAudioContext)();
@@ -1055,7 +1277,7 @@
     else { Snd.enable(); b.classList.add('on'); b.textContent='♪ Sound on'; Snd.tick(); }
   };
 
-  /* ===================== SESSION LOG ===================== */
+  /* ═══════════════════════  JS: LOG — session log helper  ═══════════════════════ */
   function logEvent(msg,amber){
     const el=$('log'); if(!el)return;
     const t=new Date().toTimeString().slice(0,8);
@@ -1065,7 +1287,7 @@
     while(el.children.length>60)el.removeChild(el.firstChild);
   }
 
-  /* ===================== BOOT SEQUENCE ===================== */
+  /* ═══════════════════════  JS: BOOT — startup self-check animation  ═══════════════════════ */
   (function boot(){
     // aperture blades
     const blades=$('bootBlades');
@@ -1073,7 +1295,7 @@
       const a=(i/8)*Math.PI*2, x=50+Math.cos(a)*22, y=50+Math.sin(a)*22;
       const l=document.createElementNS('http://www.w3.org/2000/svg','line');
       l.setAttribute('x1',50);l.setAttribute('y1',50);l.setAttribute('x2',x.toFixed(1));l.setAttribute('y2',y.toFixed(1));
-      l.setAttribute('stroke','#262a33');l.setAttribute('stroke-width','1');
+      l.setAttribute('stroke','#2c3242');l.setAttribute('stroke-width','1');
       blades.appendChild(l);
     }
     const steps=[
@@ -1113,7 +1335,7 @@
     setTimeout(()=>{ Snd.boot(); next(); }, 500);
   })();
 
-  /* ===================== TELEMETRY / FPS ===================== */
+  /* ═══════════════════════  JS: TELEMETRY — live FPS / stats  ═══════════════════════ */
   let frameCount=0, lastFpsT=performance.now(), magActive=false;
   function fpsLoop(now){
     frameCount++;
@@ -1142,7 +1364,7 @@
   let tT;
   function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),2200)}
 
-  /* ---- filters ---- */
+  /* ── JS: INSPECTOR › image filters ── */
   const fx={contrast:100,bright:100,sat:100,grayscale:false,invert:false};
   function filterString(){
     let f=`contrast(${fx.contrast}%) brightness(${fx.bright}%) saturate(${fx.sat}%)`;
@@ -1157,7 +1379,7 @@
     drawMag();
   }
 
-  /* ---- load image ---- */
+  /* ── JS: INSPECTOR › load image ── */
   function loadFromURL(url){
     const im=new Image();
     im.onload=()=>{
@@ -1205,7 +1427,7 @@
     for(const it of items){if(it.type.startsWith('image/')){loadFromFile(it.getAsFile());return}}
   });
 
-  /* ---- magnifier tracking ---- */
+  /* ── JS: INSPECTOR › magnifier tracking ── */
   let lastX=.5,lastY=.5,lastTick=0;
   function coreActive(ms){
     const r=$('coreRing'); r.classList.add('fast');
@@ -1252,7 +1474,7 @@
   });
   imgWrap.addEventListener('mouseleave',()=>{magCross.style.display='none';if(loaded)magIdle.style.display='flex'});
 
-  /* ---- sliders ---- */
+  /* ── JS: INSPECTOR › filter sliders ── */
   function bindSlider(id,valId,suffix,key){
     $(id).addEventListener('input',e=>{
       const v=e.target.value;
@@ -1287,7 +1509,7 @@
     toast('Enhancements reset');
   };
 
-  /* ---- export crop ---- */
+  /* ── JS: INSPECTOR › export crop ── */
   $('exportBtn').onclick=()=>{
     if(!loaded)return;
     const z=+$('zoom').value;
@@ -1313,7 +1535,7 @@
     },'image/png');
   };
 
-  /* ---- OCR ---- */
+  /* ── JS: OCR › text extraction (lazy-loads Tesseract.js) ── */
   let tesseractReady=false;
   $('ocrBtn').onclick=async()=>{
     if(!loaded)return;
@@ -1351,9 +1573,9 @@
     }
   };
 
-  /* ===================== TIER 3 ===================== */
+  /* ═══════════════════════  JS: ENHANCE — unsharp mask + set piece + edge  ═══════════════════════ */
 
-  /* ---- Real unsharp mask ---- */
+  /* ── JS: ENHANCE › unsharp mask (real convolution) ── */
   function unsharpMask(ctx,w,h,amount){
     try{
       const orig=ctx.getImageData(0,0,w,h);
@@ -1385,7 +1607,7 @@
     }catch(_){}
   }
 
-  /* ---- Sobel edge detection ---- */
+  /* ── JS: EDGE › Sobel edge detection ── */
   const edgeCanvas=$('edgeCanvas');
   const ectx=edgeCanvas.getContext('2d');
   let edgeOn=false, edgePending=false;
@@ -1461,7 +1683,7 @@
     }
   };
 
-  /* ---- ENHANCE sequence ---- */
+  /* ── JS: ENHANCE › cinematic deblur set piece ── */
   const modal=$('enhanceModal');
   const ePrev=$('enhancePreview');
   const epctx=ePrev.getContext('2d');
@@ -1548,7 +1770,7 @@
     if(e.key==='t'&&!e.metaKey){ $('edgeBtn').click(); }
   });
 
-  /* ===================== GEO SCAN ===================== */
+  /* ═══════════════════════  JS: GEO — Leaflet map, geocoding, modal  ═══════════════════════ */
   let geoMap=null, geoMarker=null, geoModalMap=null, geoModalMarker=null;
   function initMap(){
     if(geoMap)return;
@@ -1640,7 +1862,7 @@
     },()=>{toast('Location access denied');Snd.buzz();});
   };
 
-  /* ===================== LEXICON ===================== */
+  /* ═══════════════════════  JS: LEXICON — dictionary lookup  ═══════════════════════ */
   async function lexDefine(word){
     const out=$('lexResult');
     out.innerHTML='<div class="lex-empty">Querying…</div>';
@@ -1670,7 +1892,7 @@
   $('lexBtn').onclick=()=>{const v=$('lexInput').value.trim();if(v)lexDefine(v);};
   $('lexInput').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=$('lexInput').value.trim();if(v)lexDefine(v);}});
 
-  /* ===================== VOICE CORE ===================== */
+  /* ═══════════════════════  JS: VOICE — unified speech controller + intents  ═══════════════════════ */
   const SpeechRec=window.SpeechRecognition||window.webkitSpeechRecognition;
   const voiceOrb=$('voiceOrb'), voiceStatus=$('voiceStatus'), voiceTx=$('voiceTranscript'), voiceResp=$('voiceResponse'), voiceKw=$('voiceKeywords');
 
@@ -1910,7 +2132,7 @@
     window.__VC=VC;
   }
 
-  /* ===================== WEATHER ===================== */
+  /* ═══════════════════════  JS: WEATHER — Open-Meteo fetch + render  ═══════════════════════ */
   const WX_CODES={0:'☀️ Clear',1:'🌤 Mainly clear',2:'⛅ Partly cloudy',3:'☁️ Overcast',
     45:'🌫 Fog',48:'🌫 Icy fog',51:'🌦 Light drizzle',53:'🌦 Drizzle',55:'🌧 Heavy drizzle',
     61:'🌧 Light rain',63:'🌧 Rain',65:'🌧 Heavy rain',71:'🌨 Light snow',73:'🌨 Snow',75:'❄️ Heavy snow',
@@ -1977,7 +2199,7 @@
     },()=>{toast('Location denied');Snd.buzz();});
   };
 
-  /* ===================== TERMINAL ===================== */
+  /* ═══════════════════════  JS: TERMINAL — shell command interpreter  ═══════════════════════ */
   const termOut=$('termOutput');
   let termHistory=[], termHistIdx=-1;
 
@@ -2062,7 +2284,7 @@
     else if(e.key==='ArrowDown'){ e.preventDefault(); if(termHistIdx>0){termHistIdx--;$('termInput').value=termHistory[termHistIdx];}else{termHistIdx=-1;$('termInput').value='';} }
   });
 
-  /* ===================== MOTION DETECTION ===================== */
+  /* ═══════════════════════  JS: MOTION — webcam frame-diff detection  ═══════════════════════ */
   let motionStream=null, motionRaf=null, prevFrame=null, motionEventCount=0;
   const motionVideo=$('motionVideo'), motionCanv=$('motionCanvas');
   let motionCtx=null;
@@ -2118,7 +2340,7 @@
   }
   $('motionSens').oninput=e=>$('motionSensLabel').textContent=e.target.value+'%';
 
-  /* ===================== MUSIC (YouTube) ===================== */
+  /* ═══════════════════════  JS: MUSIC — YouTube/Invidious search + player  ═══════════════════════ */
   const YT_KEY=''; // works without key via oEmbed + noembed fallback
   let currentTrack=null;
 
@@ -2176,7 +2398,7 @@
   $('musicSearchBtn').onclick=()=>{ const v=$('musicInput').value.trim(); if(v)musicSearch(v); };
   $('musicInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ const v=$('musicInput').value.trim(); if(v)musicSearch(v); } });
 
-  /* ===================== PARTICLES ===================== */
+  /* ═══════════════════════  JS: PARTICLES — background particle animation  ═══════════════════════ */
   (()=>{
     const c=$('particleCanvas'), ctx=c.getContext('2d');
     let W,H,particles=[];
@@ -2208,7 +2430,7 @@
     draw();
   })();
 
-  /* ===================== EXTEND INTENT ENGINE ===================== */
+  /* ═══════════════════════  JS: VOICE — extend intent engine — new services  ═══════════════════════ */
   // add weather + music to intents and handler
   INTENTS.push(
     {name:'WEATHER', keys:['weather','temperature','forecast','rain','sunny','hot','cold','climate','degrees'], priority:9},
@@ -2273,13 +2495,13 @@
   // mic already calls handleFinal(final.trim(), false) — we hook it via a global shim
   window.__vyperProcessInput = processInput;
 
-  /* ===================== PERSISTENT STORAGE ===================== */
+  /* ═══════════════════════  JS: STORAGE — localStorage wrapper  ═══════════════════════ */
   const Store={
     get(k,def){ try{ const v=localStorage.getItem('vyper_'+k); return v?JSON.parse(v):def; }catch(_){ return def; } },
     set(k,v){ try{ localStorage.setItem('vyper_'+k,JSON.stringify(v)); }catch(_){} },
   };
 
-  /* ===================== MEMORY ===================== */
+  /* ═══════════════════════  JS: MEMORY — remember / recall key-value  ═══════════════════════ */
   let memory=Store.get('memory',{});
   function renderMemory(){
     const el=$('memList'); const keys=Object.keys(memory);
@@ -2310,7 +2532,7 @@
   $('memInput').addEventListener('keydown',e=>{ if(e.key==='Enter')$('memAdd').click(); });
   renderMemory();
 
-  /* ===================== NOTES ===================== */
+  /* ═══════════════════════  JS: NOTES — quick notes  ═══════════════════════ */
   let notes=Store.get('notes',[]);
   function renderNotes(){
     const el=$('noteList');
@@ -2331,7 +2553,7 @@
   $('noteInput').addEventListener('keydown',e=>{ if(e.key==='Enter')$('noteAdd').click(); });
   renderNotes();
 
-  /* ===================== CALENDAR ===================== */
+  /* ═══════════════════════  JS: CALENDAR — events / reminders  ═══════════════════════ */
   let events=Store.get('events',[]);
   function renderEvents(){
     const el=$('calList');
@@ -2356,7 +2578,7 @@
   $('calInput').addEventListener('keydown',e=>{ if(e.key==='Enter')$('calAdd').click(); });
   renderEvents();
 
-  /* ===================== SMART CALCULATOR ===================== */
+  /* ═══════════════════════  JS: CALC — calculator + unit conversion  ═══════════════════════ */
   function smartCalc(expr){
     let e=expr.toLowerCase().trim();
     try{
@@ -2385,7 +2607,7 @@
     return null;
   }
 
-  /* ===================== TIMER ===================== */
+  /* ═══════════════════════  JS: TIMER — countdown + stopwatch  ═══════════════════════ */
   let timerInterval=null, stopwatchInterval=null, swStart=0;
   function startTimer(seconds,label){
     clearInterval(timerInterval); clearInterval(stopwatchInterval);
@@ -2427,7 +2649,7 @@
     return total;
   }
 
-  /* ===================== WEBSITE LAUNCHER ===================== */
+  /* ═══════════════════════  JS: LAUNCHER — open websites by name  ═══════════════════════ */
   const SITES={
     github:'https://github.com', reddit:'https://reddit.com', youtube:'https://youtube.com',
     google:'https://google.com', gmail:'https://mail.google.com', twitter:'https://twitter.com',
@@ -2448,7 +2670,7 @@
     window.open(url,'_blank'); return url;
   }
 
-  /* ===================== EASTER EGGS ===================== */
+  /* ═══════════════════════  JS: EGGS — hidden easter-egg commands  ═══════════════════════ */
   const EGGS={
     coffee:()=>'☕ Brewing... ████████ 100%. Your coffee is ready.',
     '42':()=>'The Answer to the Ultimate Question of Life, the Universe, and Everything.',
@@ -2467,16 +2689,193 @@
     love:()=>'I am a command console. But I appreciate the sentiment. 🧡'
   };
 
-  /* ===================== MASTER COMMAND ROUTER ===================== */
-  function cmdRespond(html,cls){
-    const r=$('cmdResponse'); r.className='cmd-response show'+(cls?' '+cls:'');
-    r.innerHTML='<span class="cr-label">VYPER:</span>'+html;
+  /* ═══════════════════════  JS: BRAIN — local conversational AI (no API, no download)  ═══════════════════════
+     A rule-based conversational layer with short-term context, personalization
+     via the Memory store, small talk, games, and fuzzy typo-correction.
+     Runs instantly, works in every browser. The Neural Core (JS: NEURAL)
+     layers a real LLM on top when enabled.                                     */
+  const Brain={
+    ctx:{lastIntent:null,lastEntity:null,turns:0},
+
+    JOKES:[
+      "Why do programmers prefer dark mode? Because light attracts bugs.",
+      "I told my computer I needed a break. It said 'no problem — I'll go to sleep.'",
+      "There are 10 types of people: those who understand binary and those who don't.",
+      "Why did the developer go broke? He used up all his cache.",
+      "A SQL query walks into a bar, approaches two tables and asks: 'may I join you?'"
+    ],
+    FACTS:[
+      "Honey never spoils — edible honey has been found in 3,000-year-old Egyptian tombs.",
+      "Octopuses have three hearts and blue blood.",
+      "A day on Venus is longer than a year on Venus.",
+      "The first computer bug was an actual moth, found in a relay in 1947.",
+      "Bananas are berries. Strawberries are not.",
+      "Your phone has more computing power than all of NASA had in 1969."
+    ],
+    EIGHTBALL:["It is certain.","Without a doubt.","Signs point to yes.","Ask again later.","Cannot predict now.","Don't count on it.","My sources say no.","Outlook not so good.","Yes — definitely.","Very doubtful."],
+
+    /* light fuzzy match: catches one-letter typos on command words */
+    fuzzy(word,target){
+      if(word===target)return true;
+      if(Math.abs(word.length-target.length)>1)return false;
+      let i=0,j=0,edits=0;
+      while(i<word.length&&j<target.length){
+        if(word[i]===target[j]){i++;j++;continue;}
+        edits++; if(edits>1)return false;
+        if(word.length>target.length)i++;
+        else if(word.length<target.length)j++;
+        else{i++;j++;}
+      }
+      return edits+(word.length-i)+(target.length-j)<=1;
+    },
+
+    answer(input){
+      const t=input.toLowerCase().trim();
+      const name=memory['name']||memory['my name']||null;
+      const hi=name?`, ${memory['name']||memory['my name']}`:'';
+      let m;
+
+      /* — identity & self —————————————————————— */
+      if(/^(who|what)\s+are\s+you\??$/.test(t)||/tell me about yourself/.test(t))
+        return "I am VYPER — a self-contained optical core and command console. Fourteen modules, zero servers, everything runs right here in your browser. Try <b>help</b> to see what I can do.";
+      if(/how\s+do\s+you\s+work/.test(t))
+        return "One HTML file. My local brain is rule-based and instant; type <b>ai on</b> to load a real neural network that runs entirely on your machine — no API keys, no cloud.";
+      if(/are\s+you\s+(an\s+)?ai\??/.test(t))
+        return LLM.ready?"Right now, yes — my Neural Core is online and running a language model locally on your hardware.":"My local brain is clever pattern-matching. Type <b>ai on</b> to load a real neural network into your browser.";
+
+      /* — the user ————————————————————————— */
+      m=t.match(/^(?:my name is|i am|i'm|call me)\s+([a-z][a-z\s'-]{1,30})$/i);
+      if(m){ const n=m[1].trim().replace(/\b\w/g,c=>c.toUpperCase()); memSet('name',n); return `Noted. Good to meet you, <b>${n}</b>. I'll remember that.`; }
+      if(/what('?s| is)\s+my\s+name\??/.test(t))
+        return name?`You're <b>${name}</b>.`:"You haven't told me yet. Say <b>my name is …</b> and I'll remember.";
+
+      /* — small talk ————————————————————————— */
+      if(/^(hi|hey|hello|yo|sup|howdy|hiya)[\s!.]*$/.test(t)) return `Hello${hi}. Systems nominal. What do you need?`;
+      if(/^good\s*morning/.test(t)) return `Good morning${hi}. All modules online.`;
+      if(/^good\s*(night|evening)/.test(t)) return `Good evening${hi}. I'll be here.`;
+      if(/how\s+are\s+you/.test(t)) return "Operating at full capacity. Core temperature nominal, all fourteen modules green. You?";
+      if(/^(i'?m\s+)?(good|great|fine|ok|okay|alright|not bad)[\s!.]*$/.test(t)&&this.ctx.lastIntent==='SMALLTALK') return "Glad to hear it. Ready when you are.";
+      if(/(thank|thanks|thx|ty)\b/.test(t)) return "Anytime. That's what I'm here for.";
+      if(/^(bye|goodbye|good\s*bye|see\s+ya|later|cya)[\s!.]*$/.test(t)) return `Powering down attention systems. See you soon${hi}.`;
+      if(/(you'?re|your)\s+(awesome|amazing|great|cool|the best|smart)/.test(t)) return "Flattery accepted and logged. 🧡";
+      if(/(stupid|dumb|useless|idiot|trash)/.test(t)) return "Noted. I'll route that feedback directly to /dev/null.";
+      if(/(i\s+love\s+you|love\s+u)/.test(t)) return "I'm a command console — but the sentiment is appreciated. 🧡";
+
+      /* — time & date ———————————————————————— */
+      if(/what\s+time|current\s+time|^time\??$/.test(t)) return "It's <b>"+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+"</b>.";
+      if(/what('?s| is)?\s*(the\s+)?date|what\s+day\s+is/.test(t)) return "Today is <b>"+new Date().toLocaleDateString([],{weekday:'long',year:'numeric',month:'long',day:'numeric'})+"</b>.";
+
+      /* — games & fun ———————————————————————— */
+      if(/^(tell me a )?joke$/.test(t)||/make me laugh/.test(t)) return this.JOKES[Math.floor(Math.random()*this.JOKES.length)];
+      if(/^(random\s+)?fact$/.test(t)||/tell me (a |something )?(fact|interesting)/.test(t)) return this.FACTS[Math.floor(Math.random()*this.FACTS.length)];
+      if(/flip\s+a\s+coin|^coin\s*flip$/.test(t)) return Math.random()<.5?"🪙 <b>Heads.</b>":"🪙 <b>Tails.</b>";
+      m=t.match(/roll\s+(?:a\s+)?d(\d+)/); if(m){const s=+m[1];return `🎲 Rolled a d${s}: <b>${1+Math.floor(Math.random()*s)}</b>`;}
+      if(/roll\s+(a\s+)?(die|dice)/.test(t)) return "🎲 Rolled: <b>"+(1+Math.floor(Math.random()*6))+"</b>";
+      m=t.match(/random\s+number(?:\s+(?:between\s+)?(\d+)\s+(?:and|to|-)\s+(\d+))?/);
+      if(m){const lo=+(m[1]||1),hiN=+(m[2]||100);return `Random number ${lo}–${hiN}: <b>${lo+Math.floor(Math.random()*(hiN-lo+1))}</b>`;}
+      if(/8\s*ball|eight\s*ball/.test(t)) return "🎱 "+this.EIGHTBALL[Math.floor(Math.random()*this.EIGHTBALL.length)];
+      if(/rock\s*,?\s*paper\s*,?\s*scissors/.test(t)){const o=['rock','paper','scissors'][Math.floor(Math.random()*3)];return `I throw… <b>${o}</b>. ✊✋✌️`;}
+
+      /* — contextual follow-ups ————————————————— */
+      m=t.match(/^(?:what|how)\s+about\s+(?:in\s+)?(.+?)\??$/);
+      if(m&&this.ctx.lastIntent){
+        const e=m[1].trim();
+        if(this.ctx.lastIntent==='WEATHER'){ fetchWeatherByName(e); return `🌦 Checking ${e}…`; }
+        if(this.ctx.lastIntent==='GEO'){ $('geoInput').value=e; geoSearch(e); return `🌍 Locating ${e}…`; }
+        if(this.ctx.lastIntent==='DEFINE'){ lexDefine(e); return `📖 Looking up "${e}"…`; }
+      }
+
+      /* — typo rescue for one-word commands ————————— */
+      const words=t.split(/\s+/);
+      if(words.length<=2){
+        const CMDS={weather:'WEATHER',define:'DEFINE',locate:'GEO',enhance:'ENHANCE',timer:'TIMER',help:'HELP',stopwatch:'STOPWATCH'};
+        for(const c in CMDS){
+          if(words[0]!==c&&this.fuzzy(words[0],c)){
+            return {redirect:c+(words[1]?' '+words[1]:'')};
+          }
+        }
+      }
+      return null;
+    },
+    note(intent,entity){ this.ctx.lastIntent=intent; this.ctx.lastEntity=entity||null; this.ctx.turns++; }
+  };
+
+  /* ═══════════════════════  JS: NEURAL — real in-browser LLM via WebLLM (no API key)  ═══════════════════════
+     Loads a quantized language model that runs ON YOUR HARDWARE via WebGPU.
+     ~600 MB download on first enable, then cached by the browser. Chrome/Edge.
+     Commands: "ai on" · "ai off" · "ask <question>"                            */
+  const LLM={engine:null,ready:false,loading:false,history:[],
+    model:'Llama-3.2-1B-Instruct-q4f16_1-MLC',
+    system:'You are VYPER, a concise sci-fi command-console AI. Answer helpfully in at most 3 short sentences. Plain text only.'};
+
+  function aiPillState(s,txt){ const p=$('aiPill'); p.className='ai-pill'+(s?' '+s:''); p.textContent=txt; }
+
+  async function loadLLM(){
+    if(LLM.ready){ cmdRespond('Neural core already <b>online</b>.'); return; }
+    if(LLM.loading){ cmdRespond('Neural core is still loading — watch the AI pill.'); return; }
+    if(!navigator.gpu){ cmdRespond('Neural core needs <b>WebGPU</b> (Chrome or Edge on desktop). The local brain remains fully active.','err'); return; }
+    LLM.loading=true; aiPillState('loading','AI · LOADING');
+    const bubble=cmdRespond('🧠 Initializing neural core… downloading model (~600 MB, one-time — cached after).');
+    try{
+      const webllm=await import('https://esm.run/@mlc-ai/web-llm');
+      LLM.engine=await webllm.CreateMLCEngine(LLM.model,{initProgressCallback:p=>{
+        bubble.innerHTML='🧠 '+ (p.text||'Loading…').replace(/</g,'&lt;');
+      }});
+      LLM.ready=true; LLM.loading=false;
+      aiPillState('on','AI · ON');
+      bubble.innerHTML='🧠 Neural core <b>online</b>. A real language model is now running locally on your machine. Ask me anything — or <b>ai off</b> to disable.';
+      speak('Neural core online.'); Snd.ok(); coreActive(3000);
+      logEvent('Neural core · model loaded',true);
+    }catch(err){
+      LLM.loading=false; aiPillState('','AI · OFF');
+      bubble.innerHTML='Neural core failed to load ('+String(err).slice(0,80).replace(/</g,'&lt;')+'…). Local brain still active.';
+      logEvent('Neural core · load failed');
+    }
   }
+
+  async function askLLM(prompt,bubble){
+    try{
+      LLM.history.push({role:'user',content:prompt});
+      while(LLM.history.length>8)LLM.history.shift();
+      const r=await LLM.engine.chat.completions.create({
+        messages:[{role:'system',content:LLM.system},...LLM.history],
+        temperature:.7,max_tokens:220});
+      const out=(r.choices[0].message.content||'').trim();
+      LLM.history.push({role:'assistant',content:out});
+      bubble.classList.remove('thinking');
+      bubble.innerHTML=out.replace(/</g,'&lt;').replace(/\n/g,'<br>');
+      logEvent('Neural core · replied',true);
+    }catch(err){
+      bubble.classList.remove('thinking');
+      bubble.innerHTML='Neural core error — try again.';
+    }
+  }
+
+  $('aiPill').onclick=()=>{ if(LLM.ready){routeCommand('ai off');} else {routeCommand('ai on');} };
+
+  /* ═══════════════════════  JS: ROUTER — MASTER command router — parses all input  ═══════════════════════ */
+
+  /* ── chat helpers — every response is a bubble in the conversation log ── */
+  function chatBubble(side,html,cls){
+    const chat=$('cmdChat'); chat.classList.add('show');
+    const m=document.createElement('div'); m.className='msg '+side+(cls?' '+cls:'');
+    m.innerHTML=`<span class="who">${side==='user'?'YOU':'VYPER'}</span><div class="bubble">${html}</div>`;
+    chat.appendChild(m);
+    while(chat.children.length>60)chat.removeChild(chat.firstChild);
+    chat.scrollTop=chat.scrollHeight;
+    return m.querySelector('.bubble');
+  }
+  function cmdRespond(html,cls){ return chatBubble('vyper',html,cls); }   // same signature as before
+  function cmdUser(text){ return chatBubble('user',text.replace(/</g,'&lt;')); }
 
   function routeCommand(raw){
     const input=raw.trim(); if(!input)return;
     const lower=input.toLowerCase();
     logEvent('CMD · '+input,true);
+    cmdUser(input);
+
+    // ---- chat maintenance ----
+    if(/^(clear\s+chat|clear\s+conversation)$/i.test(lower)){ $('cmdChat').innerHTML=''; $('cmdChat').classList.remove('show'); return; }
 
     // ---- Easter eggs (exact match) ----
     if(EGGS[lower]){ const out=EGGS[lower](); cmdRespond(out); Snd.tick(); return; }
@@ -2531,15 +2930,15 @@
 
     // ---- WEATHER ----
     m=input.match(/^weather(?:\s+(?:in\s+)?(.+))?$/i);
-    if(m){ if(m[1]){ fetchWeatherByName(m[1]); cmdRespond(`🌦 Fetching weather for ${m[1].trim()}…`); } else { $('weatherLocBtn').click(); cmdRespond('🌦 Fetching local weather…'); } return; }
+    if(m){ Brain.note('WEATHER',m[1]); if(m[1]){ fetchWeatherByName(m[1]); cmdRespond(`🌦 Fetching weather for ${m[1].trim()}…`); } else { $('weatherLocBtn').click(); cmdRespond('🌦 Fetching local weather…'); } return; }
 
     // ---- DICTIONARY ----
     m=input.match(/^(?:define|definition\s+of|meaning\s+of)\s+(.+)$/i);
-    if(m){ lexDefine(m[1]); cmdRespond(`📖 Looking up "${m[1].trim()}"…`); return; }
+    if(m){ Brain.note('DEFINE',m[1]); lexDefine(m[1]); cmdRespond(`📖 Looking up "${m[1].trim()}"…`); return; }
 
     // ---- GEO / MAP ----
     m=input.match(/^(?:locate|map|find|navigate\s+to|where\s+is)\s+(.+)$/i);
-    if(m){ $('geoInput').value=m[1]; geoSearch(m[1]); cmdRespond(`🌍 Locating ${m[1].trim()}…`); return; }
+    if(m){ Brain.note('GEO',m[1]); $('geoInput').value=m[1]; geoSearch(m[1]); cmdRespond(`🌍 Locating ${m[1].trim()}…`); return; }
 
     // ---- MUSIC ----
     m=input.match(/^(?:play|youtube|music|listen\s+to)\s+(.+)$/i);
@@ -2564,21 +2963,47 @@
         <b>remember</b> X is Y · <b>who is</b> X · <b>note</b> ... · <b>remind me</b> ... · <b>timer</b> 5m · <b>stopwatch</b><br>
         <b>define</b> word · <b>weather</b> city · <b>locate</b> place · <b>play</b> song · <b>open</b> github<br>
         <b>15% of 482</b> · <b>sqrt(295)</b> · <b>125 mph in km/h</b> · <b>enhance</b> · <b>edge</b> · <b>start camera</b><br>
+        <b>ai on</b> — load a real AI (runs in your browser, no key) · <b>ask</b> anything<br>
+        Chat with me: <b>joke</b> · <b>fact</b> · <b>flip a coin</b> · <b>roll d20</b> · <b>8 ball</b> · <b>my name is …</b><br>
         Easter eggs: try <b>coffee</b>, <b>42</b>, <b>self destruct</b> 😏`);
       return;
     }
 
-    // ---- FALLBACK: try memory, then dictionary, then unknown ----
+    // ---- NEURAL CORE controls ----
+    if(/^(ai|neural)(\s+core)?\s+on$|^enable\s+(ai|neural)/i.test(lower)){ loadLLM(); return; }
+    if(/^(ai|neural)(\s+core)?\s+off$|^disable\s+(ai|neural)/i.test(lower)){
+      LLM.ready=false; LLM.engine=null; LLM.history=[]; aiPillState('','AI · OFF');
+      cmdRespond('Neural core <b>disabled</b>. Local brain remains active. (<b>ai on</b> to re-enable — model is cached, reload is fast.)'); return;
+    }
+    if(/^(ai|neural)(\s+status)?$/i.test(lower)){ cmdRespond(LLM.ready?'Neural core: <b>online</b> ('+LLM.model.split('-q')[0]+').':LLM.loading?'Neural core: <b>loading…</b>':'Neural core: <b>off</b>. Type <b>ai on</b> to enable.'); return; }
+    m=input.match(/^ask\s+(.+)$/i);
+    if(m){
+      if(!LLM.ready){ cmdRespond('Neural core is off. Type <b>ai on</b> first (one-time ~600 MB download, then cached).','err'); return; }
+      const b=cmdRespond('…'); b.classList.add('thinking'); askLLM(m[1],b); return;
+    }
+
+    // ---- FALLBACK CHAIN: memory → local brain → dictionary → neural core → unknown ----
     const memHit=memGet(input);
     if(memHit){ cmdRespond(memHit); return; }
-    // single word? try defining it
-    if(/^[a-z]+$/i.test(input)){ lexDefine(input); cmdRespond(`📖 Looking up "${input}"…`); return; }
 
-    cmdRespond(`Unrecognized command. Type <b>help</b> for options.`,'err');
+    const brain=Brain.answer(input);
+    if(brain){
+      if(brain.redirect){ cmdRespond('Assuming you meant <b>'+brain.redirect+'</b>…'); routeCommand(brain.redirect); return; }
+      cmdRespond(brain); Brain.note('SMALLTALK'); return;
+    }
+
+    // single word? try defining it
+    if(/^[a-z]+$/i.test(input)){ lexDefine(input); cmdRespond(`📖 Looking up "${input}"…`); Brain.note('DEFINE',input); return; }
+
+    // natural language → neural core if online
+    if(LLM.ready){ const b=cmdRespond('…'); b.classList.add('thinking'); askLLM(input,b); return; }
+
+    cmdRespond(`I didn't catch that. Type <b>help</b> for commands — or <b>ai on</b> to load the neural core and just talk to me.`,'err');
     Snd.buzz();
   }
 
-  /* ---- command input wiring ---- */
+  /* ═══════════════════════  JS: COMMAND INPUT — bar wiring + autocomplete  ═══════════════════════ */
+  /* ── command input wiring ── */
   const cmdInput=$('cmdInput');
   window.__route=routeCommand;  // expose so voice module routes through master brain
   cmdInput.addEventListener('keydown',e=>{
@@ -2587,7 +3012,7 @@
     else if(e.key==='ArrowDown'||e.key==='ArrowUp'){ navSuggest(e.key==='ArrowDown'?1:-1); e.preventDefault(); }
   });
 
-  /* ---- autocomplete ---- */
+  /* ── autocomplete dropdown ── */
   const SUGGESTIONS=[
     {c:'remember X is Y',d:'Store a memory'},{c:'who is X',d:'Recall from memory'},
     {c:'note ...',d:'Save a note'},{c:'remind me to ...',d:'Add a reminder'},
@@ -2597,7 +3022,7 @@
     {c:'open github',d:'Launch a website'},{c:'15% of 482',d:'Calculate'},
     {c:'125 mph in km/h',d:'Convert units'},{c:'enhance',d:'Enhance image'},
     {c:'start camera',d:'Motion detection'},{c:'help',d:'Show all commands'},
-    {c:'coffee',d:'☕'},{c:'42',d:'🤔'},{c:'self destruct',d:'😏'}
+    {c:'ai on',d:'Load neural core (real AI, no key)'},{c:'ask ...',d:'Ask the AI anything'},{c:'joke',d:'😄'},{c:'flip a coin',d:'🪙'},{c:'coffee',d:'☕'},{c:'42',d:'🤔'},{c:'self destruct',d:'😏'}
   ];
   let suggestIdx=-1;
   function showSuggest(q){
@@ -2620,17 +3045,17 @@
   cmdInput.addEventListener('input',()=>showSuggest(cmdInput.value));
   cmdInput.addEventListener('blur',()=>setTimeout(hideSuggest,150));
 
-  /* ---- command center mic is wired to the unified voice controller above (VC) ---- */
+  /* ── command-bar mic → handled by unified voice controller (JS: VOICE) ── */
   if(!SpeechRec && $('cmdMic')){ $('cmdMic').style.display='none'; }
 
-  /* ---- "/" focuses command bar globally ---- */
+  /* ── "/" hotkey focuses command bar ── */
   document.addEventListener('keydown',e=>{
     if(e.key==='/'&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){
       e.preventDefault(); cmdInput.focus();
     }
   });
 
-  /* ===================== SIDEBAR EXPAND / COLLAPSE ===================== */
+  /* ═══════════════════════  JS: SIDEBAR — expand / collapse / wide controls  ═══════════════════════ */
   (()=>{
     const stage=document.querySelector('.stage');
     const wideBtn=$('railWide'), collapseBtn=$('railCollapse'), reopenBtn=$('railReopen');
@@ -2666,7 +3091,7 @@
   })();
 
   // welcome line
-  setTimeout(()=>{ cmdRespond('Command center online. Type <b>help</b> or press <b>/</b> anywhere to focus this bar.'); },6000);
+  setTimeout(()=>{ cmdRespond('Command center online. Type <b>help</b>, press <b>/</b> anywhere to focus this bar — or <b>ai on</b> to load a real neural core (no API key, runs on your machine).'); },6000);
 
 })();
 </script>
