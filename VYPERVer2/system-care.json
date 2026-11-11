@@ -1,0 +1,10 @@
+{
+  "protected": [
+    {
+      "path": "README.md",
+      "reason": "keep this file safe",
+      "addedAt": "2026-09-30T15:12:17.202Z"
+    }
+  ],
+  "reminders": []
+}
