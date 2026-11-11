@@ -1,0 +1,17 @@
+{
+  "mode": "operator-controlled",
+  "capabilities": {
+    "web_research": true,
+    "local_memory": true,
+    "voice": true,
+    "code_read": true,
+    "system_care": true,
+    "email": false,
+    "sms": false
+  },
+  "approvalRequired": [
+    "email",
+    "sms",
+    "system_change"
+  ]
+}

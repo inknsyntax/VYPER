@@ -1,0 +1,12 @@
+{
+  "name": "vyper-local",
+  "version": "1.0.0",
+  "description": "VYPER local server with system sound control (Windows)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "loudness": "^0.5.0"
+  }
+}

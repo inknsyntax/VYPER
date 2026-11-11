@@ -1,0 +1,14 @@
+{
+  "mode": "read-only",
+  "root": ".",
+  "files": [
+    "index.html",
+    "server.js",
+    "voice-engine.ps1",
+    "package.json",
+    "README.md",
+    "memory.json",
+    "search.json",
+    "file-access.json"
+  ]
+}
